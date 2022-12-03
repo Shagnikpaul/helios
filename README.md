@@ -1,13 +1,13 @@
 
-![Logo](https://media.discordapp.net/attachments/1037609423331393536/1048325841609818323/banner.png)
+![Logo](https://media.discordapp.net/attachments/1037609423331393536/1048482685925998692/banner.png)
 
 
 <h1 align="center">🌞 Hi I am Helios.</h1>
 <p align="center">I am an easy-to-use discord weather bot. I fetch data from <a href="https://openweathermap.org/api">OpenWeatherMap</a> API and then generate a Weather card based on that data and display it to the user through a discord embed.</p>
 
-
-
-
+<p align="center">
+<a href="https://discord.com/api/oauth2/authorize?client_id=1045392740499853312&permissions=2147600384&scope=bot%20applications.commands"><img src="https://media.discordapp.net/attachments/1037609423331393536/1048481578411638844/button.png" width=150px align="center"></a>
+</p>
 
 
 <br><br>
@@ -118,6 +118,47 @@ python main.py
 <h1 align="center">😇 Contributing.</h1>
 <p align="center">All contributions are welcome! Just try to make meaningful contributions to the code, no goofy aah scripts or malware please 🤓</p>
 <br>
+<h2>📖 Instructions</h2>
 <ul>
-  <li>Follow the first few steps given in <a href="">Bot Hosting.</a></li>
+  <li>Follow the first few steps given in <a href="https://github.com/Shagnikpaul/helios#-host-the-bot-locally">Bot Hosting</a>.</li>
+  <li>Start developing. 🤯</li>
 </ul>
+
+<h1 align="center">🌟 Python Libraries and APIs used in this Project.</h1>
+<br>
+<ul>
+  <li><a href="https://github.com/nextcord/nextcord">NextCord</a> for... yes you guessed it <b>tO connECT tO disCORd APi. 🤯</b></li>
+  <li><a href="https://pypi.org/project/Pillow/">Pillow</a> to generate the weather cards.</b></li>
+  <li><a href="https://pypi.org/project/python-dotenv/">Python-dotenv</a> to hide API keys and tokens from Romanian Citizens.</li>
+  <li><a href="https://pypi.org/project/requests/">Python-requests</a> to request some <del>bit**es</del> I mean data from REST APIs.</li>
+  <li><a href="https://openweathermap.org/api">OpenWeatherMap</a> for weather data.</li>
+  <li><a href="https://positionstack.com/">Position Stack</a> for geolocation data.</li>
+</ul>
+
+<h1 align="center">🚨 License.</h1>
+<br>
+
+
+```
+MIT License
+
+Copyright (c) [year] [fullname]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
