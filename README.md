@@ -45,7 +45,7 @@
 # location and units required.   
 ```
 
- <li>Now you are ready to use the bot.</li>
+ <li>Now you can start using the bot.</li>
   
 </ul> 
 
