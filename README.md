@@ -50,7 +50,7 @@
 </ul> 
 
 <br>
-<h2> General usage.</h2>
+<h2>🟢 General usage.</h2>
 <p>After completing the setup run the following slash command to get weather.</p>
 
 
@@ -59,7 +59,7 @@
 ```
 
 
-<h2> Other commands.</h2>
+<h2>*️⃣ Other commands.</h2>
 <p>List of all commands supported by the bot can be obtained by running the following slash command.</p>
 
 
@@ -67,7 +67,7 @@
 /help-helios   
 ```
 <br>
-<h1 align="center">❓ Host the bot locally.</h1>
+<h1 align="center">😎 Host the bot locally.</h1>
 <p>Sometimes hosting services don't work properly or just randomly shut down resulting in bot becoming offline and in that case no one can invite the bot to their 
 server and use it. So if you have an old spare computer why not use it to host this bot for your own use? Following are the instructions on how to do so.</p>
 <br>
@@ -98,7 +98,7 @@ latlonAPIKEY=
  
   <li><code>botToken</code> is your discord bot token. Here's a <a href="https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-IDs#how-to-get-a-bot-token">guide</a> on how to get it.</li>
   <li><code>latlonAPIKEY</code> is your positionstack API KEY required for searching a particular location's latitude and longitute. Get it <a href="https://positionstack.com/signup/free">here</a>.</li>
-  <li>Open terminal <b>in the root/project directory.</b>.</li> 
+  <li>Open terminal <b>in the root/project directory</b>.</li> 
  <li>Install the required dependencies by running the following command in the terminal.</li>
  
  
@@ -112,6 +112,12 @@ pip install -r requirements.txt
  ```
 python main.py
 ```
-<li>Your bot is now ready for use! Refer to <a href="">Bot Commands</a> for setting up the bot in the server.</li>
-  
+<li>Your bot is now ready for use! Refer to <a href="https://github.com/Shagnikpaul/helios#-how-to-use-the-bot">Bot Commands</a> for setting up the bot for server use.</li>
+</ul>
+
+<h1 align="center">😇 Contributing.</h1>
+<p align="center">All contributions are welcome! Just try to make meaningful contributions to the code, no goofy aah scripts or malware please 🤓</p>
+<br>
+<ul>
+  <li>Follow the first few steps given in <a href="">Bot Hosting.</a></li>
 </ul>
