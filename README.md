@@ -101,13 +101,15 @@ latlonAPIKEY=
   <li>Open terminal <b>in the root/project directory</b>.</li> 
  <li>Install the required dependencies by running the following command in the terminal.</li>
  
+ <br>
+ 
  
  ```
 pip install -r requirements.txt
 ```
 
  <li>Start the bot by running the following command in the terminal.</li>
- 
+ <br>
  
  ```
 python main.py
