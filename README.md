@@ -114,16 +114,16 @@ python main.py
 ```
 <li>Your bot is now ready for use! Refer to <a href="https://github.com/Shagnikpaul/helios#-how-to-use-the-bot">Bot Commands</a> for setting up the bot for server use.</li>
 </ul>
-
+<br>
 <h1 align="center">😇 Contributing.</h1>
-<p align="center">All contributions are welcome! Just try to make meaningful contributions to the code, no goofy aah scripts or malware please 🤓</p>
+<p align="center"><b>All contributions are welcome! Just try to make meaningful contributions to the code, no goofy aah scripts or malware please 🤓</b></p>
 <br>
 <h2>📖 Instructions</h2>
 <ul>
   <li>Follow the first few steps given in <a href="https://github.com/Shagnikpaul/helios#-host-the-bot-locally">Bot Hosting</a>.</li>
   <li>Start developing. 🤯</li>
 </ul>
-
+<br>
 <h1 align="center">🌟 Python Libraries and APIs used in this Project.</h1>
 <br>
 <ul>
@@ -134,7 +134,7 @@ python main.py
   <li><a href="https://openweathermap.org/api">OpenWeatherMap</a> for weather data.</li>
   <li><a href="https://positionstack.com/">Position Stack</a> for geolocation data.</li>
 </ul>
-
+<br>
 <h1 align="center">🚨 License.</h1>
 <br>
 
