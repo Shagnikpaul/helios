@@ -1,12 +1,12 @@
 
-![Logo](https://media.discordapp.net/attachments/1037609423331393536/1048482685925998692/banner.png)
+![Logo](https://github.com/Shagnikpaul/helios/blob/main/images/banner.png)
 
 
 <h1 align="center">🌞 Hi I am Helios.</h1>
 <p align="center">I am an easy-to-use discord weather bot. I fetch data from <a href="https://openweathermap.org/api">OpenWeatherMap</a> API and then generate a Weather card based on that data and display it to the user through a discord embed.</p>
 
 <p align="center">
-<a href="https://discord.com/api/oauth2/authorize?client_id=1045392740499853312&permissions=2147600384&scope=bot%20applications.commands"><img src="https://media.discordapp.net/attachments/1037609423331393536/1048481578411638844/button.png" width=150px align="center"></a>
+<a href="https://discord.com/api/oauth2/authorize?client_id=1045392740499853312&permissions=2147600384&scope=bot%20applications.commands"><img src="https://github.com/Shagnikpaul/helios/blob/main/images/button.png" width=150px align="center"></a>
 </p>
 
 
