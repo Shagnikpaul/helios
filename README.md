@@ -120,7 +120,7 @@ python main.py
 </ul>
 <br>
 <h1 align="center">😇 Contributing.</h1>
-<p align="center"><b>All contributions are welcome! Just try to make meaningful contributions to the code, no goofy aah scripts or malware please 🤓</b></p>
+<p align="center"><b>"All contributions are welcome! Just try to make meaningful contributions to the code, no goofy aah scripts or malware please." <br> - 🤓</b></p>
 <br>
 <h2>📖 Instructions</h2>
 <ul>
