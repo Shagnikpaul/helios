@@ -7,8 +7,8 @@
 
 <p align="center">
 <a href="https://discord.com/api/oauth2/authorize?client_id=1045392740499853312&permissions=2147600384&scope=bot%20applications.commands"><img src="https://github.com/Shagnikpaul/helios/blob/main/images/button.png" width=150px align="center"></a>
-<a href="https://discord.com/api/oauth2/authorize?client_id=1045392740499853312&permissions=2147600384&scope=bot%20applications.commands"><img src="https://github.com/Shagnikpaul/helios/blob/main/images/button.png" width=150px align="center"></a>
-<a href="https://discord.com/api/oauth2/authorize?client_id=1045392740499853312&permissions=2147600384&scope=bot%20applications.commands"><img src="https://github.com/Shagnikpaul/helios/blob/main/images/button.png" width=150px align="center"></a>  
+<a href="https://discord.com/api/oauth2/authorize?client_id=1045392740499853312&permissions=2147600384&scope=bot%20applications.commands"><img src="https://github.com/Shagnikpaul/helios/blob/main/images/supportserverButton.png" width=150px align="center"></a>
+<a href="https://top.gg/bot/1045392740499853312?s=0ef22f93d0bb1"><img src="https://github.com/Shagnikpaul/helios/blob/main/images/topggbutton.png" width=150px align="center"></a>  
 </p>
 
 
