@@ -21,6 +21,9 @@
 
 
 <h2>🔧 First time setup.</h2>
+
+Helios supports prefix `!w` but only help command (`!whelp`) works for now. It is recommended to use the `slash-commands` since only they will be updated in future.
+
 <ul>
   <li>Firstly, invite the bot to your server and also give it the required permissions while doing so.</li>
   <li>Go to <a href="https://openweathermap.org/api">OpenWeatherMap</a> create a new account, generate a new API_KEY from your 'profile section' of the website.</li>
