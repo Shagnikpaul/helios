@@ -53,6 +53,9 @@
   
 </ul> 
 
+> More info regarding how the bot handles your Weather API_KEY can be found [here](https://github.com/Shagnikpaul/helios/blob/main/KEY_HANDLING.md)
+
+
 <br>
 <h2>🟢 General usage.</h2>
 <p>After completing the setup run the following slash command to get weather.</p>
