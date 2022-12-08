@@ -12,8 +12,10 @@ import imageGenerator
 
 
 load_dotenv()
-bot = commands.Bot()
-guildIDS = []
+intents = nextcord.Intents.default()
+intents.message_content = True
+intents.members = True
+bot = commands.Bot(command_prefix='!w', intents=intents, help_command=None)
 accountManager = accountManager()
 
 
@@ -35,15 +37,53 @@ class Confirmation(nextcord.ui.View):
         button.disabled = True
 
 
+@bot.command(name='help')
+async def helps(ctx: commands.Context):
+    print(datetime.now().ctime(),
+          f" RAN COMMAND {ctx.command.name} in {ctx.author.guild.name} by {ctx.author.name}#{ctx.author.discriminator}")
+    emb1 = nextcord.embeds.Embed(color=nextcord.Colour.teal(
+    ), title='Helios Bot Command list.', description='Here is a list of commands supported by Helios Bot.')
+    emb1.add_field(name="\u200B", value="\u200B", inline=False)
+    emb1.add_field(name='Setup API key for server use.',
+                   value='``` /server-setup ```', inline=False)
+    emb1.add_field(name="\u200B", value="\u200B", inline=False)
+    emb1.add_field(name='Setup your own location and specify the units in which you want to get the weather forecast in.',
+                   value='``` /user-setup ```', inline=False)
+    emb1.add_field(name="\u200B", value="\u200B", inline=False)
+    emb1.add_field(name='Get your weather.',
+                   value='``` /weather ```', inline=False)
+    emb1.add_field(name="\u200B", value="\u200B", inline=False)
+    emb1.add_field(name='Delete your profile you had created previously',
+                   value='``` /delete-user-data ```', inline=False)
+    emb1.add_field(name="\u200B", value="\u200B", inline=False)
+    emb1.add_field(name='Delete the API_KEY you had assigned for the server use.',
+                   value='``` /delete-server-data ```', inline=False)
+    emb1.add_field(name="\u200B", value="\u200B", inline=False)
+    emb1.add_field(name='Get info about the bot and it\'s developer.',
+                   value='``` /about-me ```', inline=False)
+    emb1.add_field(name="\u200B", value="\u200B", inline=False)
+    emb2 = nextcord.embeds.Embed(color=nextcord.Colour.yellow(
+    ), title="NOTE", description="Helios only supports slash commands.")
+    await ctx.send(embeds=[emb2, emb1])
+
+
 @bot.event
 async def on_ready():
-    for i in bot.guilds:
-        guildIDS.append(i.id)
     print(f'We have logged in as {bot.user}')
     await bot.change_presence(activity=nextcord.Game(name="/weather"))
 
 
-@bot.slash_command(name='help-helios', description="List all available commands of Helios bot with description.", guild_ids=guildIDS)
+@bot.event
+async def on_guild_remove(guild: nextcord.Guild):
+    if accountManager.serverAccountExists(serverID=str(guild.id)):
+        accountManager.delServer(serverID=(str)(guild.id))
+        print(datetime.now().ctime(),
+              f" DELETED SERVER DATA OF {guild.name} ({guild.id})")
+    else:
+        print(datetime.now().ctime(),
+              f" I LEFT (NO EXISTING SERVER DATA) {guild.name} ({guild.id})")
+
+@bot.slash_command(name='help-helios', description="List all available commands of Helios bot with description.", guild_ids=bot.default_guild_ids)
 async def helpCommand(interaction: nextcord.Interaction):
     logTheCommand(interaction=interaction)
     await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.teal(), title='Helios Bot Command list.', description='Here is a list of commands supported by Helios Bot.')
@@ -59,10 +99,10 @@ async def helpCommand(interaction: nextcord.Interaction):
                            .add_field(name='Delete the API_KEY you had assigned for the server use.', value='``` /delete-server-data ```', inline=False)
                            .add_field(name="\u200B", value="\u200B", inline=False)
                            .add_field(name='Get info about the bot and it\'s developer.', value='``` /about-me ```', inline=False)
-                           .add_field(name="\u200B", value="\u200B", inline=False))
+                           .add_field(name="\u200B", value="\u200B", inline=False), ephemeral=True)
 
 
-@bot.slash_command(name="server-setup", description="Setup the bot with default weather settings same for all the members of the server", guild_ids=guildIDS)
+@bot.slash_command(name="server-setup", description="Setup the bot with default weather settings same for all the members of the server", guild_ids=bot.default_guild_ids)
 async def serversetupCommand(interaction: nextcord.Interaction,
                              api_key: Optional[str] = SlashOption(required=True, description="Give your OpenWeatherMap API Key")):
     logTheCommand(interaction=interaction)
@@ -70,11 +110,10 @@ async def serversetupCommand(interaction: nextcord.Interaction,
         await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
                                                            description="Existing server configuration was found. If you want to change the `API_KEY` then run the following command followed by the server setup command")
                                .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
-                               .add_field(name="First run this one.", value="``` /delete-server-data  ```", inline=False)
-                               )
+                               .add_field(name="First run this one.", value="``` /delete-server-data  ```", inline=False), ephemeral=True)
     else:
         await interaction.send(embed=nextcord.embeds.Embed(title="Checking your API_KEY", description="Just a moment....")
-                               .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/face-with-monocle_1f9d0.png'))
+                               .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/face-with-monocle_1f9d0.png'), ephemeral=True)
         if weatherService.checkAPIKey(API_KEY=api_key):
             await interaction.edit_original_message(embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description="Server settings has been saved. Setup your location if you have not done else you are ready to run the weather command!")
                                                     .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png')
@@ -91,7 +130,7 @@ async def serversetupCommand(interaction: nextcord.Interaction,
                                                     .add_field(name="Run this command.", value="``` /server-setup ```", inline=False))
 
 
-@bot.slash_command(name="user-setup", description="Configure the bot to get the weather of your own loction.", guild_ids=guildIDS)
+@bot.slash_command(name="user-setup", description="Configure the bot to get the weather of your own loction.", guild_ids=bot.default_guild_ids)
 async def usersetupCommand(interaction: nextcord.Interaction,
                            location: Optional[str] = SlashOption(
                                required=True, description="Enter your town or city name. Don't give exact address 💀"),
@@ -102,10 +141,10 @@ async def usersetupCommand(interaction: nextcord.Interaction,
                                                            description="You have already setup your location. If you want to change your location then first delete your existing configuration and then again run this command.")
                                .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
                                .add_field(name="First run the following command.", value="``` /delete-user {not added} ```", inline=False)
-                               .add_field(name="Then run this one.", value="``` /user-setup ```", inline=False))
+                               .add_field(name="Then run this one.", value="``` /user-setup ```", inline=False), ephemeral=True)
     else:
         await interaction.send(embed=nextcord.embeds.Embed(title="Searching your given location.", description="Just a moment....")
-                               .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/face-with-monocle_1f9d0.png'))
+                               .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/face-with-monocle_1f9d0.png'), ephemeral=True)
         coord = weatherService.geoCode(location=location)
         if coord != None:
             views = Confirmation()
@@ -123,7 +162,8 @@ async def usersetupCommand(interaction: nextcord.Interaction,
                                                         .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'))
             elif views.value:
                 await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description="Your location profile has been created and saved.")
-                                                        .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'))
+                                                        .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png')
+                                                        .add_field(name="All setup done? Get your weather.", value="``` /weather ```", inline=False))
                 accountManager.createUserAccount(
                     userID=str(interaction.user.id), lat=coord.get('lat'), lon=coord.get('lon'), units=units)
 
@@ -139,7 +179,7 @@ async def usersetupCommand(interaction: nextcord.Interaction,
                                                     .add_field(name="Location you gave :", value=f"``` {location}  ```", inline=False))
 
 
-@bot.slash_command(name="about-me", description="Get info regarding the bot and the developer of the bot", guild_ids=guildIDS)
+@bot.slash_command(name="about-me", description="Get info regarding the bot and the developer of the bot", guild_ids=bot.default_guild_ids)
 async def aboutCommand(interaction: nextcord.Interaction):
     logTheCommand(interaction=interaction)
     emb = nextcord.embeds.Embed(title="Hi. I am Helios. 👋",
@@ -155,38 +195,38 @@ async def aboutCommand(interaction: nextcord.Interaction):
                   value="```https://github.com/Shagnikpaul```", inline=False)
     emb.set_image(
         'https://media.discordapp.net/attachments/926366898520739903/1047216245717598258/banner4.png?width=967&height=616')
-    await interaction.send(embed=emb)
+    await interaction.send(embed=emb, ephemeral=True)
 
 
-@bot.slash_command(name="delete-user-data", description="Delete your location profile from the server.", guild_ids=guildIDS)
+@bot.slash_command(name="delete-user-data", description="Delete your location profile from the server.", guild_ids=bot.default_guild_ids)
 async def delUser(interaction: nextcord.Interaction):
     logTheCommand(interaction=interaction)
     if (accountManager.userAccountExists(userID=str(interaction.user.id))):
         accountManager.delUser(userID=str(interaction.user.id))
         await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description="Your location profile has been deleted from the server.")
-                               .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'))
+                               .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'), ephemeral=True)
     else:
         await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="ERROR.", description="You don't have any profile setup yet.")
-                               .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'))
+                               .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'), ephemeral=True)
 
 
-@bot.slash_command(name="delete-server-data", description="Delete server configuration.", guild_ids=guildIDS)
+@bot.slash_command(name="delete-server-data", description="Delete server configuration.", guild_ids=bot.default_guild_ids)
 async def delServer(interaction: nextcord.Interaction):
     logTheCommand(interaction=interaction)
     if interaction.user.guild_permissions.administrator:
         if (accountManager.serverAccountExists(serverID=str(interaction.guild_id))):
             accountManager.delServer(serverID=str(interaction.guild_id))
             await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description="Server configuration was successfully deleted.")
-                                   .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'))
+                                   .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'), ephemeral=True)
         else:
             await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="ERROR.", description="No server configuration was created before.")
-                                   .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'))
+                                   .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'), ephemeral=True)
     else:
         await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="YOU TRIED.", description="Bro is trying to run an `admin-only` command with no admin rights ☠ What an absolute clown. First obtain Administrator `Role` or `Permission` then try to run this command.")
-                               .set_thumbnail('https://media.discordapp.net/attachments/926366898520739903/1047225277941559367/unknown.png'))
+                               .set_thumbnail('https://media.discordapp.net/attachments/926366898520739903/1047225277941559367/unknown.png'), ephemeral=True)
 
 
-@bot.slash_command(name="weather", description="Get weather.", guild_ids=guildIDS)
+@bot.slash_command(name="weather", description="Get weather.", guild_ids=bot.default_guild_ids)
 async def weatherCommand(interaction: nextcord.Interaction):
     logTheCommand(interaction=interaction)
     if (accountManager.serverAccountExists(str(interaction.guild_id))):
@@ -226,12 +266,12 @@ async def weatherCommand(interaction: nextcord.Interaction):
             await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
                                                                description="You have not setup your location. Please run the user setup command:")
                                    .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
-                                   .add_field(name="Run the following command.", value="``` /user-setup ```", inline=False))
+                                   .add_field(name="Run the following command.", value="``` /user-setup ```", inline=False), ephemeral=True)
     else:
         await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
                                                            description="No existing server configuration was found. Please get a OpenWeatherMap API key by creating a new account (or existing). Then run the server setup command.")
                                .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
-                               .add_field(name="Run the following command.", value="``` /server-setup ```", inline=False))
+                               .add_field(name="Run the following command.", value="``` /server-setup ```", inline=False), ephemeral=True)
 
 
 def logTheCommand(interaction: nextcord.Interaction):
@@ -245,3 +285,12 @@ if __name__ == '__main__':
     if (os.path.exists('users') == False):
         os.mkdir('users')
     bot.run(os.getenv("botToken"))
+
+
+def ron():
+    if (os.path.exists('servers') == False):
+        os.mkdir('servers')
+    if (os.path.exists('users') == False):
+        os.mkdir('users')
+    bot.run(os.getenv("botToken"))
+
