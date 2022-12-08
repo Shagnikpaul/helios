@@ -126,7 +126,7 @@ python main.py
 <br>
 <h2>📖 Instructions</h2>
 <ul>
-  <li>Follow the first few steps given in <a href="https://github.com/Shagnikpaul/helios#-host-the-bot-locally">Bot Hosting</a>.</li>
+  <li>Follow the steps given in <a href="https://github.com/Shagnikpaul/helios/blob/main/CONTRIBUTING.md">Contributing Instructions.</a>.</li>
   <li>Start developing. 🤯</li>
 </ul>
 <br>
