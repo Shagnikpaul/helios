@@ -11,11 +11,13 @@
 <a href="https://discord.gg/QeeQaJtJ3q" target="_blank" rel="noopener noreferrer"><img src="https://media.discordapp.net/attachments/937729461766479912/1048898411480490015/supportserverButton.png" height=50px style="Padding: 10px;"></a>
 ‎ ‎ ‎ ‎ 
 <a href="https://github.com/Shagnikpaul/helios#-first-time-setup" target="_blank" rel="noopener noreferrer"><img src="https://github.com/Shagnikpaul/helios/blob/main/images/prefix.png" height=50px style="Padding: 10px;"></a>
-</p>
 <br>
 ‎ ‎ ‎ ‎ 
+ <br>
 <a href="https://top.gg/bot/1045392740499853312" target="_blank" rel="noopener noreferrer"><img src="https://github.com/Shagnikpaul/helios/blob/main/images/topggbutton.png" height=50px style="Padding: 10px;"></a>
 <br>
+</p>
+
 
 <br><br>
 
