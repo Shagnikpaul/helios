@@ -25,27 +25,12 @@
 <br>
 
 
-<h2>🔧 First time setup.</h2>
+<h2>🔧 First time setup. (Required)</h2>
 
 Helios supports prefix `!w` but only help command (`!whelp`) works for now. It is recommended to use the `slash-commands` since only they will be updated in future.
 
 <ul>
-  <li>Firstly, invite the bot to your server and also give it the required permissions while doing so.</li>
-  <li>Go to <a href="https://openweathermap.org/api">OpenWeatherMap</a> create a new account, generate a new API_KEY from your 'profile section' of the website.</li>
-  <li>Wait for 10-15 mins for the API_KEY to get activated before you can use it in the bot.</li>
-  <li>Run the following slash command with API_KEY</li>
-  
-  <br>
-  
-  
-  
-  
-```python 
-/server-setup
-
-# API_KEY required.   
-```
-  <li>Now run the following slash command with location and weather forecast units you want.</li>
+  <li>Run the following slash command with location and weather forecast units you want.</li>
   
   
   <br>
@@ -57,16 +42,38 @@ Helios supports prefix `!w` but only help command (`!whelp`) works for now. It i
 # location and units required.   
 ```
 
- <li>Now you can start using the bot.</li>
+ <li><b>Now you can start using the bot.</b></li>
   
 </ul> 
+<br>
+<h3>#️⃣ Use your own <code>API_KEY</code>. (Optional)</h3>
+<p>Using your own API_KEY can give you the freedom of using the weather command for almost unlimited times (1,000,000 times per month).</p>
+<br>
+<ul>
+  <li>Go to <a href="https://openweathermap.org/api">OpenWeatherMap</a> create a new account, generate a new API_KEY from your 'profile section' of the website.</li>
+  <li>Wait for 10-15 mins for the API_KEY to get activated before you can use it in the bot.</li>
+  <li>Run the following slash command with API_KEY</li>
+
+  <br>
+  
+  
+  
+  
+```python 
+/server-setup
+
+# API_KEY required.   
+```
+
+</ul>  
+
 
 > More info regarding how the bot handles your Weather API_KEY can be found [here](https://github.com/Shagnikpaul/helios/blob/main/KEY_HANDLING.md)
 
 
 <br>
 <h2>🟢 General usage.</h2>
-<p>After completing the setup run the following slash command to get weather.</p>
+<p>After completing the setup, run the following slash command to get weather.</p>
 
 
 ```python 
