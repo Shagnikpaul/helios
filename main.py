@@ -158,7 +158,7 @@ async def usersetupCommand(interaction: nextcord.Interaction,
         await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
                                                            description="You have already setup your location. If you want to change your location then first delete your existing configuration and then again run this command.")
                                .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
-                               .add_field(name="First run the following command.", value="``` /delete-user {not added} ```", inline=False)
+                               .add_field(name="First run the following command.", value="``` /delete-user ```", inline=False)
                                .add_field(name="Then run this one.", value="``` /user-setup ```", inline=False), ephemeral=True)
     else:
         await interaction.send(embed=nextcord.embeds.Embed(title="Searching your given location.", description="Just a moment....")
