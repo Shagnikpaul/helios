@@ -43,8 +43,9 @@ class Confirmation(nextcord.ui.View):
 @bot.event
 async def on_application_command_error(interaction: nextcord.Interaction, error):
     error = getattr(error, "original", error)
-
+ 
     if isinstance(error, CallableOnCooldown):
+        nextcord.Guild.get_channel()
         await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title=f"WAIT FOR {error.retry_after} SECONDS.",
                                                                                                description=f"This command is rate-limited per user. Please wait before you can use it again.")
                                                         .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png'),ephemeral=True)
@@ -221,10 +222,10 @@ async def delUser(interaction: nextcord.Interaction):
     logTheCommand(interaction=interaction)
     if (accountManager.userAccountExists(userID=str(interaction.user.id))):
         accountManager.delUser(userID=str(interaction.user.id))
-        await interaction.edit_original_message(embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description="Your location profile has been deleted from the server.")
+        await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description="Your location profile has been deleted from the server.")
                                                 .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'), ephemeral=True)
     else:
-        await interaction.edit_original_message(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="ERROR.", description="You don't have any profile setup yet.")
+        await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="ERROR.", description="You don't have any profile setup yet.")
                                                 .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'), ephemeral=True)
 
 
