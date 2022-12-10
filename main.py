@@ -248,32 +248,33 @@ async def delServer(interaction: nextcord.Interaction):
 @cooldowns.cooldown(1, 60, bucket=SlashBucket.author)
 async def weatherCommand(interaction: nextcord.Interaction):
     logTheCommand(interaction=interaction)
-    await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.blue(), title="Fetching your data...", description="Please wait it might take some time.")
-                           .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/clockwise-vertical-arrows_1f503.png'))
     if (accountManager.serverAccountExists(str(interaction.guild_id))):
         if (accountManager.userAccountExists(userID=str(interaction.user.id))):
-          
+            await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.blue(), title="Fetching your data...", description="Please wait it might take some time.")
+                           .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/clockwise-vertical-arrows_1f503.png'))
             emb = weatherEmbBuilder(interaction=interaction)
             file = nextcord.File(
                 f'users/{interaction.user.id}/imf.png', filename='imf.png')
             await interaction.edit_original_message(embed=emb, file=file)
 
         else:
-            await interaction.edit_original_message(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
+            await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
                                                                description="You have not setup your location. Please run the user setup command:")
                                    .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
                                    .add_field(name="Run the following command.", value="``` /user-setup ```", inline=False), ephemeral=True)
     else:
         if (accountManager.userAccountExists(userID=str(interaction.user.id))):
+            await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.blue(), title="Fetching your data...", description="Please wait it might take some time.")
+                           .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/clockwise-vertical-arrows_1f503.png'))
             emb = weatherEmbBuilder(interaction=interaction)
             file = nextcord.File(
                 f'users/{interaction.user.id}/imf.png', filename='imf.png')
             await interaction.edit_original_message(embed=emb, file=file)
         else:
-             await interaction.edit_original_message(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
+             await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
                                                                description="You have not setup your location. Please run the user setup command:")
                                    .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
-                                   .add_field(name="Run the following command.", value="``` /user-setup ```", inline=False), ephemeral=True)
+                                   .add_field(name="Run the following command.", value="``` /user-setup ```", inline=False),ephemeral=True)
 
         # await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
         #                                                    description="No existing server configuration was found. Please get a OpenWeatherMap API key by creating a new account (or existing). Then run the server setup command.")
