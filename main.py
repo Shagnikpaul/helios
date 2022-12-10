@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 from nextcord import SlashOption
 import nextcord
 import os
@@ -9,7 +9,9 @@ from typing import Optional
 from datetime import datetime
 from accountCreationSystem import acuSystem as accountManager
 import imageGenerator
-
+from cooldowns import SlashBucket
+from cooldowns import CallableOnCooldown
+import cooldowns
 
 load_dotenv()
 intents = nextcord.Intents.default()
@@ -35,6 +37,20 @@ class Confirmation(nextcord.ui.View):
         self.value = False
         self.stop()
         button.disabled = True
+
+
+
+@bot.event
+async def on_application_command_error(interaction: nextcord.Interaction, error):
+    error = getattr(error, "original", error)
+
+    if isinstance(error, CallableOnCooldown):
+        await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title=f"WAIT FOR {error.retry_after} SECONDS.",
+                                                                                               description=f"This command is rate-limited per user. Please wait before you can use it again.")
+                                                        .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png'),ephemeral=True)
+
+    else:
+        raise error
 
 
 @bot.command(name='help')
@@ -71,6 +87,7 @@ async def helps(ctx: commands.Context):
 async def on_ready():
     print(f'We have logged in as {bot.user}')
     await bot.change_presence(activity=nextcord.Game(name="/weather"))
+    # lo.start()
 
 
 @bot.event
@@ -82,6 +99,7 @@ async def on_guild_remove(guild: nextcord.Guild):
     else:
         print(datetime.now().ctime(),
               f" I LEFT (NO EXISTING SERVER DATA) {guild.name} ({guild.id})")
+
 
 @bot.slash_command(name='help-helios', description="List all available commands of Helios bot with description.", guild_ids=bot.default_guild_ids)
 async def helpCommand(interaction: nextcord.Interaction):
@@ -203,11 +221,11 @@ async def delUser(interaction: nextcord.Interaction):
     logTheCommand(interaction=interaction)
     if (accountManager.userAccountExists(userID=str(interaction.user.id))):
         accountManager.delUser(userID=str(interaction.user.id))
-        await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description="Your location profile has been deleted from the server.")
-                               .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'), ephemeral=True)
+        await interaction.edit_original_message(embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description="Your location profile has been deleted from the server.")
+                                                .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'), ephemeral=True)
     else:
-        await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="ERROR.", description="You don't have any profile setup yet.")
-                               .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'), ephemeral=True)
+        await interaction.edit_original_message(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="ERROR.", description="You don't have any profile setup yet.")
+                                                .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'), ephemeral=True)
 
 
 @bot.slash_command(name="delete-server-data", description="Delete server configuration.", guild_ids=bot.default_guild_ids)
@@ -227,39 +245,16 @@ async def delServer(interaction: nextcord.Interaction):
 
 
 @bot.slash_command(name="weather", description="Get weather.", guild_ids=bot.default_guild_ids)
+@cooldowns.cooldown(1, 60, bucket=SlashBucket.author)
 async def weatherCommand(interaction: nextcord.Interaction):
     logTheCommand(interaction=interaction)
+    await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.blue(), title="Fetching your data...", description="Please wait it might take some time.")
+                           .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/clockwise-vertical-arrows_1f503.png'))
     if (accountManager.serverAccountExists(str(interaction.guild_id))):
         if (accountManager.userAccountExists(userID=str(interaction.user.id))):
-            await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.blue(), title="Fetching your data...", description="Please wait it might take some time.")
-                                   .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/clockwise-vertical-arrows_1f503.png'))
-            u = accountManager.getUserData(userID=str(interaction.user.id))
-            w = weatherService.weatherServices(accountManager.getServerData(
-                serverID=str(interaction.guild_id)).get("API_KEY"), u.get('lat'), u.get('lon'), u.get('units'))
-            w.getData()
-            imageGenerator.createImage(
-                (w.temp+w.unitText), w.weatherCondition, w.icon, w.location, str(interaction.user.id))
-            emb = nextcord.embeds.Embed(colour=nextcord.Colour.random(
-            ), title="Current Weather Data.", description="\u200B")
-            emb.add_field(name="Humidity",
-                          value=f"``` {w.humidity} %  ```", inline=True)
-            emb.add_field(name="Feels Like",
-                          value=f"``` {w.feelsLike} {w.unitText}  ```", inline=True)
-            emb.add_field(name="\u200B", value="\u200B", inline=False)
-            emb.add_field(name="Wind Speed",
-                          value=f"``` {w.windSpeed} m/s  ```", inline=True)
-            emb.add_field(name="Wind Direction",
-                          value=f"``` {w.windDirection}  ```", inline=True)
-            emb.add_field(name="\u200B", value="\u200B", inline=False)
-            emb.add_field(name="Sunrise at",
-                          value=f"<t:{w.sunriseAt}:t>", inline=True)
-            emb.add_field(name="Sunset at",
-                          value=f"<t:{w.sunsetAt}:t>", inline=True)
-            emb.set_footer(text="Weather Data provided by OpenWeatherMap.",
-                           icon_url="http://openweathermap.org/img/wn/02d@2x.png")
             file = nextcord.File(
                 f'users/{interaction.user.id}/imf.png', filename='imf.png')
-            emb.set_image('attachment://imf.png')
+            emb = weatherEmbBuilder(interaction=interaction)
             await interaction.edit_original_message(embed=emb, file=file)
 
         else:
@@ -268,10 +263,50 @@ async def weatherCommand(interaction: nextcord.Interaction):
                                    .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
                                    .add_field(name="Run the following command.", value="``` /user-setup ```", inline=False), ephemeral=True)
     else:
-        await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
-                                                           description="No existing server configuration was found. Please get a OpenWeatherMap API key by creating a new account (or existing). Then run the server setup command.")
-                               .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
-                               .add_field(name="Run the following command.", value="``` /server-setup ```", inline=False), ephemeral=True)
+        file = nextcord.File(
+            f'users/{interaction.user.id}/imf.png', filename='imf.png')
+        emb = weatherEmbBuilder(interaction=interaction)
+        await interaction.edit_original_message(embed=emb, file=file)
+        # await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
+        #                                                    description="No existing server configuration was found. Please get a OpenWeatherMap API key by creating a new account (or existing). Then run the server setup command.")
+        #                        .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
+        #                        .add_field(name="Run the following command.", value="``` /server-setup ```", inline=False), ephemeral=True)
+
+
+def weatherEmbBuilder(interaction: nextcord.Interaction):
+    keyUsed=""
+    u = accountManager.getUserData(userID=str(interaction.user.id))
+    if accountManager.serverAccountExists(str(interaction.guild_id)):
+        keyUsed="Server API_KEY"
+        w = weatherService.weatherServices(accountManager.getServerData(
+            serverID=str(interaction.guild_id)).get("API_KEY"), u.get('lat'), u.get('lon'), u.get('units'))
+    else:
+        keyUsed="Global API_KEY"
+        w = weatherService.weatherServices(
+            os.getenv('weatherKey'), u.get('lat'), u.get('lon'), u.get('units'))
+    w.getData()
+    imageGenerator.createImage(
+        (w.temp+w.unitText), w.weatherCondition, w.icon, w.location, str(interaction.user.id))
+    emb = nextcord.embeds.Embed(colour=nextcord.Colour.random(
+    ), title="Current Weather Data.", description="\u200B")
+    emb.add_field(name="Humidity",
+                  value=f"``` {w.humidity} %  ```", inline=True)
+    emb.add_field(name="Feels Like",
+                  value=f"``` {w.feelsLike} {w.unitText}  ```", inline=True)
+    emb.add_field(name="\u200B", value="\u200B", inline=False)
+    emb.add_field(name="Wind Speed",
+                  value=f"``` {w.windSpeed} m/s  ```", inline=True)
+    emb.add_field(name="Wind Direction",
+                  value=f"``` {w.windDirection}  ```", inline=True)
+    emb.add_field(name="\u200B", value="\u200B", inline=False)
+    emb.add_field(name="Sunrise at",
+                  value=f"<t:{w.sunriseAt}:t>", inline=True)
+    emb.add_field(name="Sunset at",
+                  value=f"<t:{w.sunsetAt}:t>", inline=True)
+    emb.set_footer(text=f"{keyUsed} was used.",
+                   icon_url="http://openweathermap.org/img/wn/02d@2x.png")
+    emb.set_image('attachment://imf.png')
+    return emb
 
 
 def logTheCommand(interaction: nextcord.Interaction):
@@ -285,12 +320,3 @@ if __name__ == '__main__':
     if (os.path.exists('users') == False):
         os.mkdir('users')
     bot.run(os.getenv("botToken"))
-
-
-def ron():
-    if (os.path.exists('servers') == False):
-        os.mkdir('servers')
-    if (os.path.exists('users') == False):
-        os.mkdir('users')
-    bot.run(os.getenv("botToken"))
-
