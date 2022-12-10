@@ -45,7 +45,6 @@ async def on_application_command_error(interaction: nextcord.Interaction, error)
     error = getattr(error, "original", error)
  
     if isinstance(error, CallableOnCooldown):
-        nextcord.Guild.get_channel()
         await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title=f"WAIT FOR {error.retry_after} SECONDS.",
                                                                                                description=f"This command is rate-limited per user. Please wait before you can use it again.")
                                                         .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png'),ephemeral=True)
