@@ -147,7 +147,7 @@ python main.py
   <li><a href="https://github.com/nextcord/nextcord">NextCord</a> for... yes you guessed it <b>tO connECT tO disCORd APi. 🤯</b></li>
   <li><a href="https://pypi.org/project/Pillow/">Pillow</a> to generate the weather cards.</b></li>
   <li><a href="https://pypi.org/project/python-dotenv/">Python-dotenv</a> to hide API keys and tokens from Romanian Citizens.</li>
-  <li><a href="https://pypi.org/project/requests/">Python-requests</a> to request some <del>bit**es</del> I mean data from REST APIs.</li>
+  <li><a href="https://pypi.org/project/requests/">Python-requests</a> to request data from REST APIs.</li>
   <li><a href="https://openweathermap.org/api">OpenWeatherMap</a> for weather data.</li>
   <li><a href="https://positionstack.com/">Position Stack</a> for geolocation data.</li>
 </ul>
