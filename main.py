@@ -64,7 +64,7 @@ async def on_application_command_error(interaction: nextcord.Interaction, error)
         raise error
 
 
-@tasks.loop(minutes=10)
+@tasks.loop(minutes=30)
 async def weatherUpdate():
     print('zwze')
     lis = os.listdir('subscriptions')
