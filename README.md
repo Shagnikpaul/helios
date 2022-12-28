@@ -21,7 +21,7 @@
 
 <br><br>
 
-<h1 align="center">❓ How to use the bot.</h1>
+<h1 align="center">❓ How to use the bot...</h1>
 <br>
 
 
