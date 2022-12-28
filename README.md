@@ -3,7 +3,7 @@
 
 
 <h1 align="center">🌞 Hi I am Helios.</h1>
-<p align="center">I am an easy-to-use discord weather bot. I fetch data from <a href="https://openweathermap.org/api">OpenWeatherMap</a> API and then generate a Weather card based on that data and display it to the user through a discord embed.</p>
+<p align="center">I am an easy-to-use discord weather bot. I fetch data from <a href="https://openweathermap.org/api">OpenWeatherMap</a> API and then generate a Weather card based on that data and display it to the user through a discord embed. It can also send weather conditions automatically to a particular channel every 30 minutes.</p>
 
 <p align="center">
 <a href="https://discord.com/api/oauth2/authorize?client_id=1045392740499853312&permissions=2147600384&scope=bot%20applications.commands" target="_blank" rel="noopener noreferrer"><img src="https://github.com/Shagnikpaul/helios/blob/main/images/button.png" height=50px style="Padding: 10px;"></a>
@@ -46,6 +46,25 @@ Helios supports prefix `!w` but only help command (`!whelp`) works for now. It i
   
 </ul> 
 <br>
+<h3>🤖 Configure the bot to send weather automatically to a particular channel in your server. (Optional)</h3>
+<p>Tired of typing `/weather` command repeatedly to get weather? Want the bot to send you updated weather information automatically in a particular text channel of your server? Yes you can do that by running the following command. </p>
+<br>
+
+
+
+```python 
+/set-weather-channel
+
+# Field 1 : your city / town name
+# Fiedl 2 : units you want your weather in.
+# Field 3 : the text channel you want the weather info to be sent in.
+```
+
+This will send a confirmation message in that particular channel. Wait for around 25-30 minutes, the bot will automatically start sending weather updates (basically
+it will edit the existing message with the weather data, so please don't delete that message 🤓). The bot will automatically update weather data after every 30 minutes.
+
+<br>
+
 <h3>#️⃣ Use your own <code>API_KEY</code>. (Optional)</h3>
 <p>Using your own API_KEY can give you the freedom of using the weather command for almost unlimited times (1,000,000 times per month).</p>
 <br>
