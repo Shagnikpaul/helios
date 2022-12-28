@@ -67,7 +67,7 @@ class acuSystem:
             dict: Dictionary containing the data.
         """
         with open(f"servers/{serverID}/SERVER_DATA.json", "r") as outfile:
-            data = json.load(outfile)
+            data = json.load(outfile)   
             return data
 
     def getUserData(self, userID: str) -> dict:
@@ -97,3 +97,22 @@ class acuSystem:
             serverID (str): Give the server's discord `ID`
         """
         shutil.rmtree(f'servers/{serverID}')
+
+    def createSub(self, channelID:str,lat:str,lon:str,units:str,messageID:str,uID:str,serverID:str):
+        subInfo = {"channelID":channelID,
+                   "lat":lat,
+                   "lon":lon,
+                   "units":units,
+                   "mID":messageID,
+                   "uID":uID}
+        if not os.path.exists(f'subscriptions/{serverID}'):
+            os.chdir('subscriptions')
+            os.mkdir(serverID)
+            os.chdir('../')
+        with open(f"subscriptions/{serverID}/{channelID}.json", "w") as outfile:
+            json.dump(subInfo, outfile)
+    
+    def getSubInfo(self, channelId:str, serverID:str)-> dict:
+        with open(f"subscriptions/{serverID}/{channelId}.json", "r") as outfile:
+            data = json.load(outfile)
+            return data   
