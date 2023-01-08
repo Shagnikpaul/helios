@@ -6,7 +6,7 @@
 <p align="center">I am an easy-to-use discord weather bot. I fetch data from <a href="https://openweathermap.org/api">OpenWeatherMap</a> API and then generate a Weather card based on that data and display it to the user through a discord embed. It can also send weather conditions automatically to a particular channel every 30 minutes.</p>
 
 <p align="center">
-<a href="https://discord.com/api/oauth2/authorize?client_id=1045392740499853312&permissions=2147600384&scope=bot%20applications.commands" target="_blank" rel="noopener noreferrer"><img src="https://github.com/Shagnikpaul/helios/blob/main/images/button.png" height=50px style="Padding: 10px;"></a>
+<a href="https://discord.com/api/oauth2/authorize?client_id=1045392740499853312&permissions=429497117776&scope=bot" target="_blank" rel="noopener noreferrer"><img src="https://github.com/Shagnikpaul/helios/blob/main/images/button.png" height=50px style="Padding: 10px;"></a>
 ‎ ‎ ‎ ‎ 
 <a href="https://discord.gg/QeeQaJtJ3q" target="_blank" rel="noopener noreferrer"><img src="https://media.discordapp.net/attachments/937729461766479912/1048898411480490015/supportserverButton.png" height=50px style="Padding: 10px;"></a>
 ‎ ‎ ‎ ‎ 
