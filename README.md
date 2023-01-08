@@ -27,6 +27,8 @@
 
 <h2>🔧 First time setup. (Required)</h2>
 
+> **Make sure while inviting the bot you had given the bot the access to all the required permissions it was asking. Without them the bot will not work. They are also required for sending automatic weather feeds.**
+
 Helios supports prefix `!w` but only help command (`!whelp`) works for now. It is recommended to use the `slash-commands` since only they will be updated in future.
 
 <ul>
