@@ -53,8 +53,10 @@ async def on_guild_channel_delete(channel:abc.GuildChannel):
 
 @bot.event
 async def on_application_command_error(interaction: nextcord.Interaction, error):
-    error = getattr(error, "original", error)
+    if(isinstance(error, nextcord.errors.Forbidden)):
+        await interaction.send(embed=nextcord.embeds.Embed(title="MISSING PERMISSONS !", description="Make sure"))
 
+    error = getattr(error, "original", error)
     if isinstance(error, CallableOnCooldown):
         await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title=f"WAIT FOR {error.retry_after} SECONDS.",
                                                                                                description=f"This command is rate-limited per user. Please wait before you can use it again.")
@@ -63,10 +65,15 @@ async def on_application_command_error(interaction: nextcord.Interaction, error)
     else:
         raise error
 
+@bot.event
+async def on_command_error(interaction: nextcord.Interaction, error):
+    if(isinstance(error, nextcord.errors.Forbidden)):
+        await interaction.send(embed=nextcord.embeds.Embed(title="MISSING PERMISSONS !", description="Make sure"))
+
+
 
 @tasks.loop(minutes=30)
 async def weatherUpdate():
-    print('zwze')
     lis = os.listdir('subscriptions')
     for u in lis:
         for subs in os.listdir(f'subscriptions/{u}'):
@@ -80,8 +87,8 @@ async def weatherUpdate():
 async def updater(acco):
         data = await weaup(acco)
         c:nextcord.TextChannel = bot.get_channel(int(acco.get('channelID')))
+        await c.edit(name=f"{data[2]}")
         m:nextcord.Message = await c.fetch_message(int(acco.get('mID')))
-        print('CHANNEL I GOT : ',c.id, "MESSAGE I GOT : ",m.id)
         await m.edit(embed=data[1], file=data[0])
 
     
@@ -90,7 +97,11 @@ async def updater(acco):
 @bot.event
 async def on_ready():
     print(f'We have logged in as {bot.user}')
-    await bot.change_presence(activity=nextcord.Game(name="/weather"))
+    count = len(bot.guilds)
+    if(count <= 1):
+        await bot.change_presence(activity=nextcord.Game(name=f"/weather in {len(bot.guilds)} server"))
+    else:
+        await bot.change_presence(activity=nextcord.Game(name=f"/weather in {len(bot.guilds)} servers"))
     weatherUpdate.start()
 
 
@@ -163,6 +174,13 @@ async def subscribeCommand(interaction: nextcord.Interaction,
                                required=True, description="Enter your town or city name. Don't give exact address 💀"),
                            units: Optional[str] = SlashOption(name='units', required=True, choices={"Celcius": "Metric", "Fahrenheit": "Imperial"}),
                            channelname: Optional[nextcord.TextChannel] = SlashOption(name='channelname', required=True)):
+                           logTheCommand(interaction=interaction)
+                           if not permissionChecker(member= interaction.channel.guild.me)[0]:
+                            await interaction.send(embed=permissionChecker(interaction.channel.guild.me)[1])
+                            return
+                           
+                           
+                           
                            
                            if not accountManager.userAccountExists(userID=str(interaction.user.id)):
                             await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title='No existing user account found.',
@@ -191,9 +209,8 @@ async def subscribeCommand(interaction: nextcord.Interaction,
                                     await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="ERROR.", description="You did not respond to the question within 5 minutes!")
                                                                             .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'))
                                 elif views.value:
-                                    await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description="Your location profile has been created and saved.")
-                                                                            .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png')
-                                                                            .add_field(name="All setup done? Get your weather.", value="``` /weather ```", inline=False))
+                                    await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description=f"New weather feed subscription added successfully! Weather will get updated automatically in <#{channelname.id}> soon, wait for about 20-25 mins.")
+                                                                            .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'))
                                     sentone = await channelname.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="I WILL BE UPDATING WEATHER HERE  ☠",
                                                                                                     description="Can you believe it?")
                                                                         .set_thumbnail(url='https://media.discordapp.net/attachments/1037609462405537862/1046979036318019635/WOAH.png'))
@@ -381,7 +398,6 @@ async def weaup(data:dict):
     w.getData()
     imageGenerator.createImageSub(
         (w.temp+w.unitText), w.weatherCondition, w.icon, w.location, data.get('channelID'))
-    print('Started111234111')
     emb = nextcord.embeds.Embed(colour=nextcord.Colour.random(
     ), title=f"Current Weather Data. (Updated <t:{round(time.time())}:R>)", description="\u200B")
     emb.add_field(name="Humidity",
@@ -403,8 +419,10 @@ async def weaup(data:dict):
     emb.set_image(f'attachment://{data.get("channelID")}.png')
     file = nextcord.File(
                 f'subimages/{data.get("channelID")}.png', filename=f'{data.get("channelID")}.png')
-    dat = [file,emb]
-    print('fetched ! ',w.weatherCondition)
+    if int(w.temp) < 0:
+        dat = [file,emb,f'minus{w.temp}{w.unitText}-{w.location}']    
+    else:
+        dat = [file,emb,f'{w.temp}{w.unitText}-{w.location}']
     return dat
 
 
@@ -443,6 +461,28 @@ def weatherEmbBuilder(interaction: nextcord.Interaction):
     emb.set_image('attachment://imf.png')
     return emb
 
+def permissionChecker(member:nextcord.Member)-> list:
+    t = ""
+    condi = True
+    if not member.guild_permissions.view_channel:
+        t += "- To view that channel \n"
+        condi = False
+    if not member.guild_permissions.send_messages:
+        t += "- To send message in that channel \n"
+        condi = False
+    if not member.guild_permissions.manage_channels:
+        t += "- To manage that channel \n"
+        condi = False
+    if not member.guild_permissions.manage_messages:
+        t += "- To manage messages in that channel \n"
+        condi = False
+    
+    if condi:
+        return [True,nextcord.Embed(title="MISSING PERMISSIONS !", description=f"I don't have the following permissions please make sure I have them before runnning this command \n ```{t}```")
+                    .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')]
+    else:
+        return [False,nextcord.Embed(title="MISSING PERMISSIONS !", description=f"I don't have the following permissions please make sure I have them before runnning this command \n ```{t}```")
+                     .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')]
 
 def logTheCommand(interaction: nextcord.Interaction):
     print(datetime.now().ctime(),
