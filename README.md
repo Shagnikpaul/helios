@@ -47,7 +47,7 @@ Helios supports prefix `!w` but only help command (`!whelp`) works for now. It i
 </ul> 
 <br>
 <h3>🤖 Configure the bot to send weather automatically to a particular channel in your server. (Optional)</h3>
-<p>Tired of typing `/weather` command repeatedly to get weather? Want the bot to send you updated weather information automatically in a particular text channel of your server? Yes you can do that by running the following command. </p>
+<p>Tired of typing <code>/weather</code> command repeatedly to get weather? Want the bot to send you updated weather information automatically in a particular text channel of your server? Yes you can do that by running the following command. </p>
 <br>
 
 
