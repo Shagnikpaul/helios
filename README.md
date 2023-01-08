@@ -42,7 +42,7 @@ Helios supports prefix `!w` but only help command (`!whelp`) works for now. It i
 # location and units required.   
 ```
 
- <li><b>Now you can start using the bot.</b></li>
+ <li><b>Now you can start using the bot. Go to <a href="https://github.com/Shagnikpaul/helios#-general-usage">General Commands</a> to get started.</b></li>
   
 </ul> 
 <br>
