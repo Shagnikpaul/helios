@@ -23,7 +23,7 @@
 
 <h1 align="center">❓ How to use the bot...</h1>
 <br>
-
+<p align="center">For complete list of commands along with tutorials, visit my <a href="https://shagniks-organization.gitbook.io/helios-weather-bot/">gitbook docs</a>.</p>
 
 <h2>🔧 First time setup. (Required)</h2>
 
