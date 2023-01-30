@@ -104,7 +104,8 @@ class acuSystem:
                    "lon":lon,
                    "units":units,
                    "mID":messageID,
-                   "uID":uID}
+                   "uID":uID,
+                   "serverID":serverID}
         if not os.path.exists(f'subscriptions/{serverID}'):
             os.chdir('subscriptions')
             os.mkdir(serverID)
