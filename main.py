@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from nextcord.ext import commands, tasks
 from nextcord import SlashOption, abc
 import nextcord
+import json
 import shutil
 import os
 import weatherService
@@ -24,6 +25,7 @@ intents.message_content = True
 intents.messages = True
 intents.guilds = True
 bot = commands.Bot(command_prefix='!w', intents=intents, help_command=None)
+
 accountManager = accountManager()
 server_count: int = 0
 quote_list = ["Vote me on Top.gg", "fixed the bugs!", "/help-helios | !whelp",
@@ -43,12 +45,17 @@ class AboutLinks(nextcord.ui.View):
         self.add_item(nextcord.ui.Button(label="😳 INVITE ME",
                       url="https://top.gg/bot/1045392740499853312/invite"))              
 
+def kek():
+    pass
+
 
 class SupportLinks(nextcord.ui.View):
     def __init__(self) -> None:
         super().__init__()
         self.value = None
-        self.add_item(nextcord.ui.Button(label="GET HELP",
+        self.add_item(nextcord.ui.Button(label="MY COMMANDS",
+                      url="https://shagniks-organization.gitbook.io/helios-weather-bot/"))
+        self.add_item(nextcord.ui.Button(label="DISCORD SERVER",
                       url="https://discord.gg/QeeQaJtJ3q"))
 
 
@@ -58,8 +65,7 @@ class MinimalLinks(nextcord.ui.View):
         self.value = None
         self.add_item(nextcord.ui.Button(label="💖 VOTE ME",
                       url="https://top.gg/bot/1045392740499853312/vote"))
-        self.add_item(nextcord.ui.Button(label="📝 REVIEW ME",
-                      url="https://top.gg/bot/1045392740499853312"))
+ 
 
 
 class Confirmation(nextcord.ui.View):
@@ -127,7 +133,6 @@ async def on_command_error(interaction: nextcord.Interaction, error):
 @tasks.loop(minutes=30)
 async def weatherUpdate():
     count = len(bot.guilds)
-    server_count = count
     if randint(2, 3) % 2 == 0:
         if (count <= 1):
             await bot.change_presence(activity=nextcord.Game(name=quote_list[randint(0, (len(quote_list)-1))]))
@@ -144,9 +149,48 @@ async def weatherUpdate():
         for subs in os.listdir(f'subscriptions/{u}'):
             cou += 1
             k = accountManager.getSubInfo(channelId=subs[:-5], serverID=u)
+            if "maxT" in k.keys():
+                pass
+            else:
+                with open(f'subscriptions/{u}/{subs}', 'r+') as fp:
+                    await fUpdater(fp.name)
+            # if os.path.exists(f'forecast/server_{u}_{subs}'):
+            #     pass
+            # else:
+            #     with open(f'forecast/server_{u}_{subs}', 'w') as fp:
+            #         json.dump({"lat_lon" : f"{k.get('lat')},{k.get('lon')}", 
+            #                     "units":f"{k.get('units')}"}
+            #                     ,fp)
             t = asyncio.create_task(updater(k))
     print(
         f'Updated weather feeds for {cou} subscribers in a total of {len(lis)} servers')
+
+
+
+@tasks.loop(minutes=1)
+async def forecastUpdater():
+    lis = os.listdir('subscriptions')
+    for u in lis:
+        for subs in os.listdir(f'subscriptions/{u}'):
+            t = asyncio.create_task(fUpdater(f'subscriptions/{u}/{subs}'))
+    print('forecasts updated...')
+
+
+
+async def fUpdater(file):
+    try:
+        with open(f'{file}', "r") as outfile:
+            data = json.load(outfile)
+            forecas = weatherService.forecast(lat_lon= f'{data.get("lat")},{data.get("lon")}',units=data.get('units'))
+            with open(f'{file}', "w") as oute:
+                data.update(forecas)
+                json.dump(data,oute)
+                    
+    except Exception as e:
+        print('errrr!!!',e)
+
+
+
 
 
 async def updater(acco: dict):
@@ -179,6 +223,8 @@ async def updater(acco: dict):
             return
 
     # message editing part
+    if str(c.type) == 'voice':
+            return
     try:
         m: nextcord.Message = await c.fetch_message(int(acco.get('mID')))
         await m.edit(embed=data[1], file=data[0], view= MinimalLinks())
@@ -206,6 +252,7 @@ async def on_ready():
     else:
         await bot.change_presence(activity=nextcord.Game(name=f"/weather in {len(bot.guilds)} servers"))
     weatherUpdate.start()
+    forecastUpdater.start()
 
 
 @bot.event
@@ -230,61 +277,16 @@ async def on_guild_remove(guild: nextcord.Guild):
 async def helps(ctx: commands.Context):
     print(datetime.now().ctime(),
           f" RAN COMMAND {ctx.command.name} in {ctx.author.guild.name} by {ctx.author.name}#{ctx.author.discriminator}")
-    emb1 = nextcord.embeds.Embed(color=nextcord.Colour.teal(
-    ), title='Helios Bot Command list.', description='Here is a list of commands supported by Helios Bot.')
-    emb1.add_field(name="\u200B", value="\u200B", inline=False)
-    emb1.add_field(name='Setup API key for server use.',
-                   value='``` /server-setup ```', inline=False)
-    emb1.add_field(name="\u200B", value="\u200B", inline=False)
-    emb1.add_field(name='Setup your own location and specify the units in which you want to get the weather forecast in.',
-                   value='``` /user-setup ```', inline=False)
-    emb1.add_field(name="\u200B", value="\u200B", inline=False)
-    emb1.add_field(name='Get your weather.',
-                   value='``` /weather ```', inline=False)
-    emb1.add_field(name="\u200B", value="\u200B", inline=False)
-    emb1.add_field(name='Get updated weather sent by bot automatically, in a particular channel you want.',
-                   value='``` /set-weather-channel ```', inline=False)
-    emb1.add_field(name="\u200B", value="\u200B", inline=False)
-    emb1.add_field(name="\u200B", value="\u200B", inline=False)
-    emb1.add_field(name='List all current weather-feed channels.',
-                   value='``` /list-feed-channels ```', inline=False)
-    emb1.add_field(name='Delete your profile you had created previously',
-                   value='``` /delete-user-data ```', inline=False)
-    emb1.add_field(name="\u200B", value="\u200B", inline=False)
-    emb1.add_field(name='Delete the API_KEY you had assigned for the server use.',
-                   value='``` /delete-server-data ```', inline=False)
-    emb1.add_field(name="\u200B", value="\u200B", inline=False)
-    emb1.add_field(name='Get info about the bot and it\'s developer.',
-                   value='``` /about-me ```', inline=False)
-    emb1.add_field(name="\u200B", value="\u200B", inline=False)
-    emb2 = nextcord.embeds.Embed(color=nextcord.Colour.yellow(
-    ), title="NOTE", description="Helios only supports slash commands.")
+    emb1 = nextcord.Embed(colour=nextcord.Colour.teal(), title='MY COMMANDS', description='Visit this GitBook Docs page for complete list of commands and detailed tutorials.').set_thumbnail('https://media.tenor.com/W-CbMoHi0ckAAAAj/information-symbols.gif')
     views = SupportLinks()
-    await ctx.send(embeds=[emb2, emb1], view=views)
+    await ctx.send(embed=emb1, view=views)
 
 
 @bot.slash_command(name='help-helios', description="List all available commands of Helios bot with description.", guild_ids=bot.default_guild_ids)
 async def helpCommand(interaction: nextcord.Interaction):
     logTheCommand(interaction=interaction)
     views = SupportLinks()
-    await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.teal(), title='Helios Bot Command list.', description='Here is a list of commands supported by Helios Bot.')
-                           .add_field(name="\u200B", value="\u200B", inline=False)
-                           .add_field(name='Setup API key for server use.', value='``` /server-setup ```', inline=False)
-                           .add_field(name="\u200B", value="\u200B", inline=False)
-                           .add_field(name='Setup your own location and specify the units in which you want to get the weather forecast in.', value='``` /user-setup ```', inline=False)
-                           .add_field(name="\u200B", value="\u200B", inline=False)
-                           .add_field(name='Get your weather.', value='``` /weather ```', inline=False)
-                           .add_field(name="\u200B", value="\u200B", inline=False)
-                           .add_field(name='Get updated weather sent by bot automatically, in a particular channel you want.', value='``` /set-weather-channel ```', inline=False)
-                           .add_field(name="\u200B", value="\u200B", inline=False)
-                           .add_field(name='List all current weather-feed channels.', value='``` /list-feed-channels ```', inline=False)
-                           .add_field(name="\u200B", value="\u200B", inline=False)
-                           .add_field(name='Delete your profile you had created previously', value='``` /delete-user-data ```', inline=False)
-                           .add_field(name="\u200B", value="\u200B", inline=False)
-                           .add_field(name='Delete the API_KEY you had assigned for the server use.', value='``` /delete-server-data ```', inline=False)
-                           .add_field(name="\u200B", value="\u200B", inline=False)
-                           .add_field(name='Get info about the bot and it\'s developer.', value='``` /about-me ```', inline=False)
-                           .add_field(name="\u200B", value="\u200B", inline=False), ephemeral=True, view=views)
+    await interaction.send(embed=nextcord.Embed(colour=nextcord.Colour.teal(), title='MY COMMANDS', description='Visit this GitBook Docs page for complete list of commands and detailed tutorials.').set_thumbnail('https://media.tenor.com/W-CbMoHi0ckAAAAj/information-symbols.gif'), view=views)
 
 
 @bot.slash_command(name='list-feed-channels', description="List all the weather-feed channels currently in your server.", guild_ids=bot.default_guild_ids)
@@ -318,9 +320,36 @@ async def listFeeds(interaction: nextcord.Interaction):
         await interaction.send(embed=emb)
 
 
-@bot.slash_command(name="delete-weather-channel", description="Delete existing weather feed channel.", guild_ids=bot.default_guild_ids)
+@bot.slash_command(name="delete-weather-channel", description="Delete existing weather feed text, thread or a voice channel.", guild_ids=bot.default_guild_ids)
 async def delSubChannel(interaction: nextcord.Interaction,
-                        channelname: Optional[nextcord.TextChannel] = SlashOption(required=True, name='channelname', description='Existing weather feed channel name.')):
+                        textchannel: Optional[nextcord.TextChannel] = SlashOption(required=False, name='textchannel', description='Existing weather feed text channel name.'),
+                        threadchannel: Optional[nextcord.Thread] = SlashOption(required=False, name='thread', description='Existing weather feed thread name.'),
+                        voicechannel: Optional[nextcord.VoiceChannel] = SlashOption(required=False, name='voicechannel', description='Existing weather feed voice channel name.')):
+    c=3
+    i=3
+    channelname = None
+    if textchannel == None:
+        c-=1
+    if threadchannel == None:
+        c-=1
+    if voicechannel == None:
+        c-=1
+    if c == 0:
+        await interaction.send(embed=nextcord.Embed(color=nextcord.Colour.gold(), title="💀☠🤓" , description=f"Choose atleast one option from the {i}. Come on bro.")
+        .set_thumbnail('https://media.tenor.com/xCc58fEqFREAAAAM/nerd-nerdy.gif')
+        .add_field(name='PRO GAMER TIP', value='Press `TAB` key on the key board to show the available options.'))
+        return
+    if c > 1:
+        await interaction.send(embed=nextcord.Embed(color=nextcord.Colour.gold(), title="💀☠🤓" , description=f"Choose atmost one option out of {i} not more than 1. Come on bro.")
+        .set_thumbnail('https://media.tenor.com/xCc58fEqFREAAAAM/nerd-nerdy.gif'))
+        return
+    if not textchannel == None:
+        channelname = textchannel
+    elif not threadchannel == None:
+        channelname = threadchannel
+    elif not voicechannel == None:
+        channelname = voicechannel
+    
     if os.path.exists(f'subscriptions/{channelname.guild.id}/{channelname.id}.json'):
         os.remove(
             f'subscriptions/{channelname.guild.id}/{channelname.id}.json')
@@ -331,18 +360,6 @@ async def delSubChannel(interaction: nextcord.Interaction,
         await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="ERROR.", description=f"No weather feed was configured for <#{channelname.id}>")
                                .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'))
 
-@bot.slash_command(name="delete-weather-thread", description="Delete existing weather feed thread.", guild_ids=bot.default_guild_ids)
-async def delSubThread(interaction: nextcord.Interaction,
-                        channelname: Optional[nextcord.Thread] = SlashOption(required=True, name='thread', description='Existing weather feed thread name.')):
-    if os.path.exists(f'subscriptions/{channelname.guild.id}/{channelname.id}.json'):
-        os.remove(
-            f'subscriptions/{channelname.guild.id}/{channelname.id}.json')
-        await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description=f"Weather feed of <#{channelname.id}> was deleted")
-                               .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'))
-
-    else:
-        await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="ERROR.", description=f"No weather feed was configured for <#{channelname.id}>")
-                               .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'))
 
 
 
@@ -352,179 +369,125 @@ async def delSubThread(interaction: nextcord.Interaction,
 
 
 
-@bot.slash_command(name='set-weather-forum-thread', description='Setup the bot to send weather updates automatically to a particular forum', guild_ids=bot.default_guild_ids)
-async def form(interaction:nextcord.Interaction, forum:nextcord.ForumChannel,
-                location: Optional[str] = SlashOption(required=True, description="Enter your town or city name. Don't give exact address 💀"),
-                units: Optional[str] = SlashOption(name='units', required=True, choices={"Celcius": "Metric", "Fahrenheit": "Imperial"})):
+async def forumNewThread(interaction:nextcord.Interaction, 
+                forum:nextcord.ForumChannel,
+                location:str,
+                units:str):
     
     logTheCommand(interaction=interaction)
     if not permissionChecker(member=interaction.channel.guild.me)[0]:
         await interaction.send(embed=permissionChecker(interaction.channel.guild.me)[1])
         return
-    channelname = await forum.create_thread(name='Weather', auto_archive_duration=None,content=f'Weather for {interaction.user.display_name}{interaction.user.discriminator}')
-    if not accountManager.userAccountExists(userID=str(interaction.user.id)):
-        await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title='No existing user account found.',
-                                                           description='You dont have any user account setup yet. Run the following command first.')
-                               .add_field(name='Run the command below', value='``` /user-setup ```'))
+    try:
+        channelname = await forum.create_thread(name='Weather', auto_archive_duration=None,content=f'Weather for {interaction.user.display_name}{interaction.user.discriminator}')
+    except:
+        await interaction.send(embed=nextcord.Embed(colour=nextcord.Colour.brand_red(), title='ERROR', description='I cannot setup weather feed in a Forum where selecting tags are necessary to post threads. Disable it to proceed.')
+        .add_field(name='How to disable it.', value='Go to Forum settings then scroll down to tags section and disable the following option.')
+        .set_image('https://i.imgur.com/31qxn40.png'))    
         return
-    if not interaction.user.guild_permissions.administrator:
-        await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="YOU TRIED.", description="Bro is trying to run an `admin-only` command with no admin rights ☠ What an absolute clown. First obtain Administrator `Role` or `Permission` then try to run this command.")
-                               .set_thumbnail('https://media.discordapp.net/attachments/926366898520739903/1047225277941559367/unknown.png'), ephemeral=True)
-        return
-    if os.path.exists(f'subscriptions/{channelname.guild.id}'):
-        if len(os.listdir(f'subscriptions/{channelname.guild.id}')) >= 10:
-            await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title='MAX LIMIT REACHED',
-                                                               description='For now you can have upto 10 weather feeds per server and currently you have 10 feeds active.'))
-            return
-    await interaction.send(embed=nextcord.embeds.Embed(title="Searching your given location.", description="Just a moment....")
-                           .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/face-with-monocle_1f9d0.png'), ephemeral=True)
-    coord = weatherService.geoCode(location=location)
-    if coord != None:
-        views = Confirmation()
-        await interaction.edit_original_message(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="CONFIRMATION.",
-                                                                            description="Please check the location detected and confirm it by clicking the **Confirmation Button** below. (Some fields might show None)")
-                                                .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
-                                                .add_field(name="Region", value=f"``` {coord.get('region')} ```", inline=False)
-                                                .add_field(name="Street", value=f"``` {coord.get('street')} ```", inline=False)
-                                                .add_field(name="County", value=f"``` {coord.get('county')} ```", inline=False)
-                                                .add_field(name="Country", value=f"``` {coord.get('country')} ```", inline=False)
-                                                .set_footer(text='Location not matching? Try giving nearby city or town name.'), view=views)
-        await views.wait()
-        if views.value == None:
-            await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="ERROR.", description="You did not respond to the question within 5 minutes!")
-                                                    .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'))
-        elif views.value:
-
-            await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description=f"New weather feed subscription added successfully! Weather will get updated automatically in <#{channelname.id}> soon, wait for about 20-25 mins.")
-                                                    .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'))
-            sentone = await channelname.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="I WILL BE UPDATING WEATHER HERE  ☠",
-                                                                         description="Can you believe it?")
-                                             .set_thumbnail(url='https://media.discordapp.net/attachments/1037609462405537862/1046979036318019635/WOAH.png'))
-            accountManager.createSub(
-                channelID=str(channelname.id), lat=coord.get('lat'), lon=coord.get('lon'), units=units, messageID=str(sentone.id), uID=str(interaction.user.id), serverID=str(interaction.guild_id))
-            k = 10 - len(os.listdir(f'subscriptions/{channelname.guild.id}'))
-            await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description=f"New weather feed subscription added successfully! Weather will get updated automatically in <#{channelname.id}> soon, wait for about 20-25 mins.")
-                                                    .set_thumbnail('https://images.emojiterra.com/mozilla/128px/2705.png')
-                                                    .set_footer(text=f'{k} Weather channels left.')
-                                                    .add_field(name='IMPORTANT NOTE', value='After the thread has been created do send a text message in that thread (just type anything) so that the thread becomes visible in your left side channel list and also you will be able to delete the subscription in the thread if needed later.'))
-
-        else:
-            try:
-                await channelname.delete()
-            except:
-                pass
-            await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
-                                                                                           description="User profile creation was cancelled.")
-                                                    .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png'))
-
-    else:
-        try:
-            await channelname.delete()
-        except:
-            pass
-        await interaction.edit_original_message(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="WHAT DA HEEEEEEEEEELLLL  ☠",
-                                                                            description="Can you believe it? The location you gave **does not f\*\*king exist in the Google Maps** 💀. Either you are trolling or you are using discord from OHIO bruh.")
-                                                .set_thumbnail(url='https://media.discordapp.net/attachments/1037609462405537862/1046979036318019635/WOAH.png')
-                                                .add_field(name="Location you gave :", value=f"``` {location}  ```", inline=False))
+    await threadWeatherSetup(interaction=interaction,location=location,units=units,channelname=channelname)
 
 
-
-
-
-
-
-
-@bot.slash_command(name='set-weather-thread', description='Setup the bot to send weather updates automatically to a particular thread', guild_ids=bot.default_guild_ids)
-async def threadSubscribeCommand(interaction:nextcord.Interaction,
-                            location: Optional[str] = SlashOption(required=True, description="Enter your town or city name. Don't give exact address 💀"),
-                            units: Optional[str] = SlashOption(name='units', required=True, choices={"Celcius": "Metric", "Fahrenheit": "Imperial"}), 
-                            channel:Optional[nextcord.TextChannel] = SlashOption(name='thread', description='The channel in which the thread should be created.',required=True)):
+@bot.slash_command(name='set-weather-feed', description='Setup bot to send weather feed in a thread, text channel or in a forum thread.', guild_ids=bot.default_guild_ids)
+async def ultimate(interaction:nextcord.Interaction,
+                    location: Optional[str] = SlashOption(required=True, description="Enter your town or city name. Don't give your exact address 💀"),
+                    units: Optional[str] = SlashOption(name='units', required=True, choices={"Celcius": "Metric", "Fahrenheit": "Imperial"}), 
+                    channelNewThread:Optional[nextcord.TextChannel] = SlashOption(name='channelforthread', description='The channel in which the weather thread should be created.',required=False),
+                    forum:Optional[nextcord.ForumChannel] = SlashOption(name='forum', description='The forum in which the weather thread should be created.',required=False),
+                    existingThread:Optional[nextcord.Thread] = SlashOption(name='existingthread', description='The already existing thread in which weather will be sent.',required=False),
+                    textChannel:Optional[nextcord.TextChannel] = SlashOption(name='textchannel' , description='A particular text channel where you want the weather.', required=False),
+                    voiceChannel:Optional[nextcord.VoiceChannel] = SlashOption(name='voicechannel' , description='A particular voice channel of whose name will be weather info.', required=False)):
     
     logTheCommand(interaction=interaction)
+    c = 5
+    i = c
+    if channelNewThread == None:
+        c-=1
+    if forum == None:
+        c-=1
+    if existingThread == None:
+        c-=1
+    if textChannel == None:
+        c-=1
+    if voiceChannel == None:
+        c-=1
+    if c == 0:
+        await interaction.send(embed=nextcord.Embed(color=nextcord.Colour.gold(), title="💀☠🤓" , description=f"Choose atleast one option from the {i}. Come on bro.")
+        .set_thumbnail('https://media.tenor.com/xCc58fEqFREAAAAM/nerd-nerdy.gif')
+        .add_field(name='PRO GAMER TIP', value='Press `TAB` key on the key board to show the available options.'))
+        return
+    if c > 1:
+        await interaction.send(embed=nextcord.Embed(color=nextcord.Colour.gold(), title="💀☠🤓" , description=f"Choose atmost one option out of {i} not more than 1. Come on bro.")
+        .set_thumbnail('https://media.tenor.com/xCc58fEqFREAAAAM/nerd-nerdy.gif'))
+        return
+    
+    
+    if not channelNewThread == None:
+        await threadSubscribeCommand(interaction=interaction, location=location,units=units,channel=channelNewThread)
+        return
+    
+    if not forum == None:
+        await forumNewThread(interaction=interaction, forum=forum, location=location, units=units)
+        return
+    
+    if not existingThread == None:
+        await threadExistingSubscribeCommand(interaction=interaction, location=location,units=units,channel=existingThread)
+        return
+
+    if not textChannel == None:
+        await subscribeCommand(interaction=interaction, location=location,units=units,channelname=textChannel)
+        return
+    
+    if not voiceChannel == None:
+        await subscribeCommand(interaction=interaction, location=location,units=units,channelname=voiceChannel)
+        return
+
+
+
+
+
+
+
+
+async def threadSubscribeCommand(interaction:nextcord.Interaction,
+                            location:str,
+                            units: str, 
+                            channel:nextcord.TextChannel):
+    
     if not permissionChecker(member=interaction.channel.guild.me)[0]:
         await interaction.send(embed=permissionChecker(interaction.channel.guild.me)[1])
         return
     mes = await channel.send(content=f'Weather for {interaction.user.display_name}')
     channelname = await channel.create_thread(name=location, message=mes, auto_archive_duration=10080, reason=f'weather for {interaction.user.name},{interaction.user.discriminator}')
+    await threadWeatherSetup(interaction=interaction,location=location,units=units,channelname=channelname)
+
+
+
+
+
+
+
+
+async def threadExistingSubscribeCommand(interaction:nextcord.Interaction,
+                            location:str,
+                            units:str, 
+                            channel:nextcord.Thread):
     
-    if not accountManager.userAccountExists(userID=str(interaction.user.id)):
-        await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title='No existing user account found.',
-                                                           description='You dont have any user account setup yet. Run the following command first.')
-                               .add_field(name='Run the command below', value='``` /user-setup ```'))
+    if not permissionChecker(member=interaction.channel.guild.me)[0]:
+        await interaction.send(embed=permissionChecker(interaction.channel.guild.me)[1])
         return
-    if not interaction.user.guild_permissions.administrator:
-        await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="YOU TRIED.", description="Bro is trying to run an `admin-only` command with no admin rights ☠ What an absolute clown. First obtain Administrator `Role` or `Permission` then try to run this command.")
-                               .set_thumbnail('https://media.discordapp.net/attachments/926366898520739903/1047225277941559367/unknown.png'), ephemeral=True)
-        return
-    if os.path.exists(f'subscriptions/{channelname.guild.id}'):
-        if len(os.listdir(f'subscriptions/{channelname.guild.id}')) >= 10:
-            await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title='MAX LIMIT REACHED',
-                                                               description='For now you can have upto 10 weather feeds per server and currently you have 10 feeds active.'))
-            return
-    await interaction.send(embed=nextcord.embeds.Embed(title="Searching your given location.", description="Just a moment....")
-                           .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/face-with-monocle_1f9d0.png'), ephemeral=True)
-    coord = weatherService.geoCode(location=location)
-    if coord != None:
-        views = Confirmation()
-        await interaction.edit_original_message(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="CONFIRMATION.",
-                                                                            description="Please check the location detected and confirm it by clicking the **Confirmation Button** below. (Some fields might show None)")
-                                                .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
-                                                .add_field(name="Region", value=f"``` {coord.get('region')} ```", inline=False)
-                                                .add_field(name="Street", value=f"``` {coord.get('street')} ```", inline=False)
-                                                .add_field(name="County", value=f"``` {coord.get('county')} ```", inline=False)
-                                                .add_field(name="Country", value=f"``` {coord.get('country')} ```", inline=False)
-                                                .set_footer(text='Location not matching? Try giving nearby city or town name.'), view=views)
-        await views.wait()
-        if views.value == None:
-            await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="ERROR.", description="You did not respond to the question within 5 minutes!")
-                                                    .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'))
-        elif views.value:
-
-            await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description=f"New weather feed subscription added successfully! Weather will get updated automatically in <#{channelname.id}> soon, wait for about 20-25 mins.")
-                                                    .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'))
-            sentone = await channelname.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="I WILL BE UPDATING WEATHER HERE  ☠",
-                                                                         description="Can you believe it?")
-                                             .set_thumbnail(url='https://media.discordapp.net/attachments/1037609462405537862/1046979036318019635/WOAH.png'))
-            accountManager.createSub(
-                channelID=str(channelname.id), lat=coord.get('lat'), lon=coord.get('lon'), units=units, messageID=str(sentone.id), uID=str(interaction.user.id), serverID=str(interaction.guild_id))
-            k = 10 - len(os.listdir(f'subscriptions/{channelname.guild.id}'))
-            await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description=f"New weather feed subscription added successfully! Weather will get updated automatically in <#{channelname.id}> soon, wait for about 20-25 mins.")
-                                                    .set_thumbnail('https://images.emojiterra.com/mozilla/128px/2705.png')
-                                                    .set_footer(text=f'{k} Weather channels left.')
-                                                    .add_field(name='IMPORTANT NOTE', value='After the thread has been created do send a text message in that thread (just type anything) so that the thread becomes visible in your left side channel list and also you will be able to delete the subscription in the thread if needed later.'))
-
-        else:
-            await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
-                                                                                           description="User profile creation was cancelled.")
-                                                    .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png'))
-
-    else:
-        await interaction.edit_original_message(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="WHAT DA HEEEEEEEEEELLLL  ☠",
-                                                                            description="Can you believe it? The location you gave **does not f\*\*king exist in the Google Maps** 💀. Either you are trolling or you are using discord from OHIO bruh.")
-                                                .set_thumbnail(url='https://media.discordapp.net/attachments/1037609462405537862/1046979036318019635/WOAH.png')
-                                                .add_field(name="Location you gave :", value=f"``` {location}  ```", inline=False))
+    await threadWeatherSetup(interaction=interaction,location=location,units=units,channelname=channel)
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-@bot.slash_command(name="set-weather-channel", description="Setup the bot to send weather updates automatically to a particular channel", guild_ids=bot.default_guild_ids)
 async def subscribeCommand(interaction: nextcord.Interaction,
-                           location: Optional[str] = SlashOption(
-                               required=True, description="Enter your town or city name. Don't give exact address 💀"),
-                           units: Optional[str] = SlashOption(name='units', required=True, choices={
-                                                              "Celcius": "Metric", "Fahrenheit": "Imperial"}),
-                           channelname: Optional[nextcord.TextChannel] = SlashOption(name='channelname', required=True)):
-    logTheCommand(interaction=interaction)
+                           location:str,
+                           units:str,
+                           channelname:nextcord.TextChannel):
+    typeofchannel = str(channelname.type)
     if not permissionChecker(member=interaction.channel.guild.me)[0]:
         await interaction.send(embed=permissionChecker(interaction.channel.guild.me)[1])
         return
@@ -570,7 +533,12 @@ async def subscribeCommand(interaction: nextcord.Interaction,
 
             await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description=f"New weather feed subscription added successfully! Weather will get updated automatically in <#{channelname.id}> soon, wait for about 20-25 mins.")
                                                     .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'))
-            sentone = await channelname.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="I WILL BE UPDATING WEATHER HERE  ☠",
+            if typeofchannel == 'voice':
+                sentone = await channelname.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="I WILL BE UPDATING THE WEATHER INFO AS NAME OF THIS VOICE CHANNEL.",
+                                                                         description="For god's sake **do not** delete this text message or I will stop updating the weather. 🤓")
+                                             .set_thumbnail(url='https://media.discordapp.net/attachments/1037609462405537862/1046979036318019635/WOAH.png'))
+            else:
+                sentone = await channelname.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="I WILL BE UPDATING WEATHER HERE  ☠",
                                                                          description="Can you believe it?")
                                              .set_thumbnail(url='https://media.discordapp.net/attachments/1037609462405537862/1046979036318019635/WOAH.png'))
             accountManager.createSub(
@@ -755,12 +723,79 @@ async def weatherCommand(interaction: nextcord.Interaction):
         #                        .add_field(name="Run the following command.", value="``` /server-setup ```", inline=False), ephemeral=True)
 
 
+
+
+
+async def threadWeatherSetup(interaction:nextcord.Interaction, location:str,units:str,channelname:nextcord.Thread):
+    if not accountManager.userAccountExists(userID=str(interaction.user.id)):
+        await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title='No existing user account found.',
+                                                           description='You dont have any user account setup yet. Run the following command first.')
+                               .add_field(name='Run the command below', value='``` /user-setup ```'))
+        return
+    if not interaction.user.guild_permissions.administrator:
+        await interaction.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="YOU TRIED.", description="Bro is trying to run an `admin-only` command with no admin rights ☠ What an absolute clown. First obtain Administrator `Role` or `Permission` then try to run this command.")
+                               .set_thumbnail('https://media.discordapp.net/attachments/926366898520739903/1047225277941559367/unknown.png'), ephemeral=True)
+        return
+    if os.path.exists(f'subscriptions/{channelname.guild.id}'):
+        if len(os.listdir(f'subscriptions/{channelname.guild.id}')) >= 10:
+            await interaction.send(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title='MAX LIMIT REACHED',
+                                                               description='For now you can have upto 10 weather feeds per server and currently you have 10 feeds active.'))
+            return
+    await interaction.send(embed=nextcord.embeds.Embed(title="Searching your given location.", description="Just a moment....")
+                           .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/face-with-monocle_1f9d0.png'), ephemeral=True)
+    coord = weatherService.geoCode(location=location)
+    if coord != None:
+        views = Confirmation()
+        await interaction.edit_original_message(embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="CONFIRMATION.",
+                                                                            description="Please check the location detected and confirm it by clicking the **Confirmation Button** below. (Some fields might show None)")
+                                                .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png')
+                                                .add_field(name="Region", value=f"``` {coord.get('region')} ```", inline=False)
+                                                .add_field(name="Street", value=f"``` {coord.get('street')} ```", inline=False)
+                                                .add_field(name="County", value=f"``` {coord.get('county')} ```", inline=False)
+                                                .add_field(name="Country", value=f"``` {coord.get('country')} ```", inline=False)
+                                                .set_footer(text='Location not matching? Try giving nearby city or town name.'), view=views)
+        await views.wait()
+        if views.value == None:
+            await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="ERROR.", description="You did not respond to the question within 5 minutes!")
+                                                    .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/cross-mark_274c.png'))
+        elif views.value:
+
+            await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description=f"New weather feed subscription added successfully! Weather will get updated automatically in <#{channelname.id}> soon, wait for about 20-25 mins.")
+                                                    .set_thumbnail('https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/check-mark-button_2705.png'))
+            sentone = await channelname.send(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="I WILL BE UPDATING WEATHER HERE  ☠",
+                                                                         description="Can you believe it?")
+                                             .set_thumbnail(url='https://media.discordapp.net/attachments/1037609462405537862/1046979036318019635/WOAH.png'))
+            accountManager.createSub(
+                channelID=str(channelname.id), lat=coord.get('lat'), lon=coord.get('lon'), units=units, messageID=str(sentone.id), uID=str(interaction.user.id), serverID=str(interaction.guild_id))
+            k = 10 - len(os.listdir(f'subscriptions/{channelname.guild.id}'))
+            await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(colour=nextcord.Colour.green(), title="SUCCESS.", description=f"New weather feed subscription added successfully! Weather will get updated automatically in <#{channelname.id}> soon, wait for about 20-25 mins.")
+                                                    .set_thumbnail('https://images.emojiterra.com/mozilla/128px/2705.png')
+                                                    .set_footer(text=f'{k} Weather channels left.')
+                                                    .add_field(name='IMPORTANT NOTE', value='After the thread has been created do send a text message in that thread (just type anything) so that the thread becomes visible in your left side channel list and also you will be able to delete the subscription in the thread if needed later.'))
+
+        else:
+            await interaction.edit_original_message(view=None, embed=nextcord.embeds.Embed(color=nextcord.Colour.gold(), title="WARNING.",
+                                                                                           description="User profile creation was cancelled.")
+                                                    .set_thumbnail(url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/319/warning_26a0-fe0f.png'))
+
+    else:
+        await interaction.edit_original_message(embed=nextcord.embeds.Embed(colour=nextcord.Colour.brand_red(), title="WHAT DA HEEEEEEEEEELLLL  ☠",
+                                                                            description="Can you believe it? The location you gave **does not f\*\*king exist in the Google Maps** 💀. Either you are trolling or you are using discord from OHIO bruh.")
+                                                .set_thumbnail(url='https://media.discordapp.net/attachments/1037609462405537862/1046979036318019635/WOAH.png')
+                                                .add_field(name="Location you gave :", value=f"``` {location}  ```", inline=False))
+    
+
+
+
+
+
+
 async def weaup(data: dict):
     w = weatherService.weatherServices(
         os.getenv('weatherKey'), data.get('lat'), data.get('lon'), data.get('units'))
     w.getData()
     imageGenerator.createImageSub(
-        (w.temp+w.unitText), w.weatherCondition, w.icon, w.location, data.get('channelID'))
+        (w.temp+w.unitText), w.weatherCondition, w.icon, w.location, data.get('channelID'), data.get('serverID'))
     emb = nextcord.embeds.Embed(colour=nextcord.Colour.from_rgb(
         r=47, g=49, b=54), title=f"Current Weather Data. (Updated <t:{round(time.time())}:R>)", description="\u200B")
     emb.add_field(name="Humidity",
@@ -868,4 +903,6 @@ if __name__ == '__main__':
         os.mkdir('subscriptions')
     if (os.path.exists('subimages') == False):
         os.mkdir('subimages')
+    if (os.path.exists('forecast') == False):
+        os.mkdir('forecast')
     bot.run(os.getenv("botToken"))

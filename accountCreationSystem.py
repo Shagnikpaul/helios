@@ -1,7 +1,7 @@
 import os
 import json
 import shutil
-
+from weatherService import forecast
 
 class acuSystem:
     def __init__(self) -> None:
@@ -99,6 +99,7 @@ class acuSystem:
         shutil.rmtree(f'servers/{serverID}')
 
     def createSub(self, channelID:str,lat:str,lon:str,units:str,messageID:str,uID:str,serverID:str):
+        
         subInfo = {"channelID":channelID,
                    "lat":lat,
                    "lon":lon,
@@ -106,6 +107,7 @@ class acuSystem:
                    "mID":messageID,
                    "uID":uID,
                    "serverID":serverID}
+        subInfo.update(forecast(lat_lon=f'{lat},{lon}', units=units))
         if not os.path.exists(f'subscriptions/{serverID}'):
             os.chdir('subscriptions')
             os.mkdir(serverID)

@@ -25,6 +25,26 @@ def checkAPIKey(API_KEY: str) -> bool:
         return False
 
 
+def forecast(lat_lon, units) -> dict:
+    try:
+        data = requests.get(
+            f'http://api.weatherapi.com/v1/forecast.json?key={os.getenv("wea2")}&q={lat_lon}&days=1&aqi=no&alerts=no')
+        u = ''
+        if units == 'Metric':
+            u = '°C'
+            units = 'c'
+        else:
+            u = '°F'
+            units = 'f'
+        maxT = str(
+            int(data.json()['forecast']['forecastday'][0]['day'][f'maxtemp_{units}']))+u
+        minT = str(
+            int(data.json()['forecast']['forecastday'][0]['day'][f'mintemp_{units}']))+u
+        return {"minT": minT, "maxT": maxT}
+    except:
+        return {'null', 'null2'}
+
+
 def geoCode(location: str):
     location = location.replace(" ", "+")
     try:
@@ -32,11 +52,12 @@ def geoCode(location: str):
             f"http://api.positionstack.com/v1/forward?access_key={os.getenv('latlonAPIKEY')}&query={location}&limit=1")
         lon = data.json()["data"][0]["longitude"]
         lat = data.json()["data"][0]["latitude"]
-        region = data.json()["data"][0]["region"] 
+        region = data.json()["data"][0]["region"]
         street = data.json()["data"][0]["street"]
         country = data.json()["data"][0]["country"]
         county = data.json()["data"][0]["county"]
-        coordinates = {"lat": lat, "lon": lon, "region":region,"street":street,"country":country,"county":county}
+        coordinates = {"lat": lat, "lon": lon, "region": region,
+                       "street": street, "country": country, "county": county}
     except Exception:
         lon = lat = coordinates = None
     return coordinates
@@ -57,7 +78,6 @@ class weatherServices:
     unitText = None
     sunriseAt = None
     sunsetAt = None
- 
 
     def __init__(self, api_key: str, lat: str, lon: str, units: str):
         self.api_key = api_key
