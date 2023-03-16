@@ -67,29 +67,7 @@ it will edit the existing message with the weather data, so please don't delete 
 
 <br>
 
-<h3>#️⃣ Use your own <code>API_KEY</code>. (Optional)</h3>
-<p>Using your own API_KEY can give you the freedom of using the weather command for almost unlimited times (1,000,000 times per month).</p>
-<br>
-<ul>
-  <li>Go to <a href="https://openweathermap.org/api">OpenWeatherMap</a> create a new account, generate a new API_KEY from your 'profile section' of the website.</li>
-  <li>Wait for 10-15 mins for the API_KEY to get activated before you can use it in the bot.</li>
-  <li>Run the following slash command with API_KEY</li>
 
-  <br>
-  
-  
-  
-  
-```python 
-/server-setup
-
-# API_KEY required.   
-```
-
-</ul>  
-
-
-> More info regarding how the bot handles your Weather API_KEY can be found [here](https://github.com/Shagnikpaul/helios/blob/main/KEY_HANDLING.md)
 
 
 <br>
