@@ -55,7 +55,7 @@ Helios supports prefix `!w` but only help command (`!whelp`) works for now. It i
 
 
 ```python 
-/set-weather-channel
+/set-weather-feed
 
 # Field 1 : your city / town name
 # Fiedl 2 : units you want your weather in.
