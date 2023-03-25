@@ -2,6 +2,7 @@ import os
 import json
 import shutil
 from weatherService import forecast
+import weatherService
 
 class acuSystem:
     def __init__(self) -> None:
@@ -114,8 +115,54 @@ class acuSystem:
             os.chdir('../')
         with open(f"subscriptions/{serverID}/{channelID}.json", "w") as outfile:
             json.dump(subInfo, outfile)
+        print('[INFO] Updating local data...')
+        self.weatherInit()
+        print('[SUCCESS] Local data updated...')
     
     def getSubInfo(self, channelId:str, serverID:str)-> dict:
         with open(f"subscriptions/{serverID}/{channelId}.json", "r") as outfile:
             data = json.load(outfile)
             return data   
+
+
+
+    def weatherInit(self):
+        lis = os.listdir('subscriptions')
+        for u in lis:
+            for subs in os.listdir(f'subscriptions/{u}'):
+                
+                try:
+                    k = self.getSubInfo(channelId=subs[:-5], serverID=u)
+                except Exception as e:
+                    print('[ERROR] INVALID FORMAT. ',e)
+                    continue;
+                
+                
+                if "weatherCondition" in k.keys():
+                    pass
+                else:
+                    with open(f'subscriptions/{u}/{subs}', 'r') as fp:
+                        try:
+                            data = json.load(fp)
+                            weatherdata = weatherService.weatherServices(os.getenv('weatherKey'),data.get("lat"),data.get("lon"),data.get("units"))
+                            weatherdata.getData()
+                            wea = {
+                                "temp":weatherdata.temp,
+                                "weatherCondition":weatherdata.weatherCondition,
+                                "icon":weatherdata.icon,
+                                "humidity":weatherdata.humidity,
+                                "windSpeed":weatherdata.windSpeed,
+                                "windDirection":weatherdata.windDirection,
+                                "feelsLike":weatherdata.feelsLike,
+                                "sunriseAt":weatherdata.sunriseAt,
+                                "sunsetAt":weatherdata.sunsetAt,
+                                "location":weatherdata.location
+                            }
+                            forecas = weatherService.forecast(lat_lon= f'{data.get("lat")},{data.get("lon")}',units=data.get('units'))
+                            with open(f'{fp.name}', "w") as oute:
+                                data.update(forecas)
+                                data.update(wea)
+                                json.dump(data,oute)
+                                        
+                        except Exception as e:
+                            print('[ERROR] Failed to write data to json files of subscriptions.... Details: ',e)

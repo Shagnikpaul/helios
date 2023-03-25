@@ -4,6 +4,7 @@ from nextcord import SlashOption, abc
 import nextcord
 import json
 import shutil
+import threading
 import os
 import weatherService
 from weatherService import weatherServices as accountManager
@@ -20,6 +21,7 @@ import asyncio
 
 
 load_dotenv()
+firstTime = True
 intents = nextcord.Intents.default()
 intents.message_content = True
 intents.messages = True
@@ -28,7 +30,7 @@ bot = commands.Bot(command_prefix='!w', intents=intents, help_command=None)
 
 accountManager = accountManager()
 server_count: int = 0
-quote_list = ["Vote me on Top.gg", "fixed the bugs!", "/help-helios | !whelp",
+quote_list = ["Vote me on Top.gg", "/help-helios | !whelp",
               "check out my weather feed feature! (type /help-helios for more info)", 'leave a comment on my Top.gg profile']
 
 
@@ -130,8 +132,8 @@ async def on_command_error(interaction: nextcord.Interaction, error):
         await interaction.send(embed=nextcord.embeds.Embed(title="MISSING PERMISSONS !", description="Make sure"))
 
 
-@tasks.loop(minutes=30)
-async def weatherUpdate():
+@tasks.loop(minutes=35)
+async def embedUpdate():
     count = len(bot.guilds)
     if randint(2, 3) % 2 == 0:
         if (count <= 1):
@@ -144,62 +146,25 @@ async def weatherUpdate():
         else:
             await bot.change_presence(activity=nextcord.Game(name=f"/weather in {len(bot.guilds)} servers"))
     lis = os.listdir('subscriptions')
-    cou = 0
+    c = 0
     for u in lis:
         for subs in os.listdir(f'subscriptions/{u}'):
-            cou += 1
-            k = accountManager.getSubInfo(channelId=subs[:-5], serverID=u)
-            if "maxT" in k.keys():
-                pass
-            else:
-                with open(f'subscriptions/{u}/{subs}', 'r+') as fp:
-                    await fUpdater(fp.name)
-            # if os.path.exists(f'forecast/server_{u}_{subs}'):
-            #     pass
-            # else:
-            #     with open(f'forecast/server_{u}_{subs}', 'w') as fp:
-            #         json.dump({"lat_lon" : f"{k.get('lat')},{k.get('lon')}", 
-            #                     "units":f"{k.get('units')}"}
-            #                     ,fp)
-            t = asyncio.create_task(updater(k))
-    print(
-        f'Updated weather feeds for {cou} subscribers in a total of {len(lis)} servers')
+            c+=1
+            t = asyncio.create_task(update(u,subs))       
+    print(f'[TASK : SUCEEDED] Embeds Updated for a total of {c} subscriptions')
+    
+    
 
-
-
-@tasks.loop(minutes=1)
-async def forecastUpdater():
-    lis = os.listdir('subscriptions')
-    for u in lis:
-        for subs in os.listdir(f'subscriptions/{u}'):
-            t = asyncio.create_task(fUpdater(f'subscriptions/{u}/{subs}'))
-    print('forecasts updated...')
-
-
-
-async def fUpdater(file):
-    try:
-        with open(f'{file}', "r") as outfile:
-            data = json.load(outfile)
-            forecas = weatherService.forecast(lat_lon= f'{data.get("lat")},{data.get("lon")}',units=data.get('units'))
-            with open(f'{file}', "w") as oute:
-                data.update(forecas)
-                json.dump(data,oute)
-                    
-    except Exception as e:
-        print('errrr!!!',e)
-
-
-
-
-
-async def updater(acco: dict):
-
-    data = await weaup(acco)
+async def update(u,subs):
+    print('[INFO] updating')
+    acco = accountManager.getSubInfo(channelId=subs[:-5], serverID=u)
     c: nextcord.TextChannel = bot.get_channel(int(acco.get('channelID')))
     # channel editing part
     try:
-        await c.edit(name=f"{data[2]}")
+        tx = ''
+        if(acco.get('temp')[0] =='-'):
+            tx='minus'
+        await c.edit(name=(tx+acco.get('temp')+'-'+acco.get('location')))
     except nextcord.errors.Forbidden:
         try:
             m: nextcord.Message = await c.fetch_message(int(acco.get('mID')))
@@ -222,12 +187,42 @@ async def updater(acco: dict):
             print('CRITICAL DELETION ERROR')
             return
 
+    except Exception as e:
+        # unknown shit occured.
+        print('[ERROR] Not known error.', e)
+
     # message editing part
     if str(c.type) == 'voice':
             return
     try:
         m: nextcord.Message = await c.fetch_message(int(acco.get('mID')))
-        await m.edit(embed=data[1], file=data[0], view= MinimalLinks())
+        imageGenerator.createImageSub(
+        acco.get('temp'), acco.get('weatherCondition'), acco.get('icon'), acco.get('location'), acco.get('channelID'), acco.get('serverID'))
+        emb = nextcord.embeds.Embed(colour=nextcord.Colour.from_rgb(
+            r=47, g=49, b=54), title=f"Current Weather Data. (Updated <t:{round(time.time())}:R>)", description="\u200B")
+        emb.add_field(name="Humidity",
+                    value=f"``` {acco.get('humidity')} %  ```", inline=True)
+        emb.add_field(name="Feels Like",
+                    value=f"``` {acco.get('feelsLike')}  ```", inline=True)
+        emb.add_field(name="\u200B", value="\u200B", inline=False)
+        emb.add_field(name="Wind Speed",
+                    value=f"``` {acco.get('windSpeed')} m/s  ```", inline=True)
+        emb.add_field(name="Wind Direction",
+                    value=f"``` {acco.get('windDirection')}  ```", inline=True)
+        emb.add_field(name="\u200B", value="\u200B", inline=False)
+        emb.add_field(name="Sunrise at",
+                    value=f"<t:{acco.get('sunriseAt')}:t>", inline=True)
+        emb.add_field(name="Sunset at",
+                    value=f"<t:{acco.get('sunsetAt')}:t>", inline=True)
+        emb.set_footer(text=f"Like the bot? A review or a vote on my Top.gg profile would be appreciated. Thank You UwU",
+                    icon_url="https://em-content.zobj.net/thumbs/120/toss-face/342/red-heart_2764-fe0f.png")
+        emb.set_image(f'attachment://{acco.get("channelID")}.png')
+        file = nextcord.File(
+            f'subimages/{acco.get("channelID")}.png', filename=f'{acco.get("channelID")}.png')
+        await m.edit(embed=emb, file=file, view= MinimalLinks())
+    
+    
+    
     except nextcord.errors.NotFound:
         try:
             try:
@@ -241,19 +236,79 @@ async def updater(acco: dict):
                 f'subscriptions/{acco.get("serverID")}/{acco.get("channelID")}.json')
         except:
             return
+    except Exception as e:
+        # unknown shit occured.
+        print('[ERROR] Not known error. ', e)
+    
+
+        # lis = os.listdir('subscriptions')
+        # cou = 0
+        # for u in lis:
+        #     for subs in os.listdir(f'subscriptions/{u}'):
+        #         cou += 1
+        #         k = accountManager.getSubInfo(channelId=subs[:-5], serverID=u)
+        #         if "maxT" in k.keys():
+        #             pass
+        #         else:
+        #             with open(f'subscriptions/{u}/{subs}', 'r+') as fp:
+        #                 await fUpdater(fp.name)
+        #         # if os.path.exists(f'forecast/server_{u}_{subs}'):
+        #         #     pass
+        #         # else:
+        #         #     with open(f'forecast/server_{u}_{subs}', 'w') as fp:
+        #         #         json.dump({"lat_lon" : f"{k.get('lat')},{k.get('lon')}", 
+        #         #                     "units":f"{k.get('units')}"}
+        #         #                     ,fp)
+        #         t = asyncio.create_task(updater(k))
+        # print(
+        #     f'Updated weather feeds for {cou} subscribers in a total of {len(lis)} servers')
+
+
+
+# @tasks.loop(minutes=127)
+# async def forecastUpdater():
+#     global firstTime
+#     if firstTime:
+#         firstTime=False
+#         return
+#     lis = os.listdir('subscriptions')
+#     for u in lis:
+#         for subs in os.listdir(f'subscriptions/{u}'):
+#             t = asyncio.create_task(fUpdater(f'subscriptions/{u}/{subs}'))
+#     print('forecasts updated...')
+
+
+
+
+
+
+
+
+@tasks.loop(minutes=27)
+async def localWeatherDataUpdater():
+    global firstTime
+    if firstTime:
+        print(f'[TASK : SKIPPED] Not updating local files for first time....')
+        firstTime = False
+        pass
+    else:
+        print(f'[TASK] Updating local files...')
+        weatherUpdater()
+        print(f'[TASK : SUCEEDED] Updated local files...')
+
 
 
 @bot.event
 async def on_ready():
-    print(f'We have logged in as {bot.user}')
+    print(f'[SUCCESS] We have logged in as {bot.user}')
     count = len(bot.guilds)
     if (count <= 1):
         await bot.change_presence(activity=nextcord.Game(name=f"/weather in {len(bot.guilds)} server"))
     else:
         await bot.change_presence(activity=nextcord.Game(name=f"/weather in {len(bot.guilds)} servers"))
-    weatherUpdate.start()
-    forecastUpdater.start()
-
+    print('[INFO] Now Playing status updated...')
+    embedUpdate.start()
+    localWeatherDataUpdater.start()
 
 @bot.event
 async def on_guild_remove(guild: nextcord.Guild):
@@ -790,39 +845,6 @@ async def threadWeatherSetup(interaction:nextcord.Interaction, location:str,unit
 
 
 
-async def weaup(data: dict):
-    w = weatherService.weatherServices(
-        os.getenv('weatherKey'), data.get('lat'), data.get('lon'), data.get('units'))
-    w.getData()
-    imageGenerator.createImageSub(
-        (w.temp+w.unitText), w.weatherCondition, w.icon, w.location, data.get('channelID'), data.get('serverID'))
-    emb = nextcord.embeds.Embed(colour=nextcord.Colour.from_rgb(
-        r=47, g=49, b=54), title=f"Current Weather Data. (Updated <t:{round(time.time())}:R>)", description="\u200B")
-    emb.add_field(name="Humidity",
-                  value=f"``` {w.humidity} %  ```", inline=True)
-    emb.add_field(name="Feels Like",
-                  value=f"``` {w.feelsLike} {w.unitText}  ```", inline=True)
-    emb.add_field(name="\u200B", value="\u200B", inline=False)
-    emb.add_field(name="Wind Speed",
-                  value=f"``` {w.windSpeed} m/s  ```", inline=True)
-    emb.add_field(name="Wind Direction",
-                  value=f"``` {w.windDirection}  ```", inline=True)
-    emb.add_field(name="\u200B", value="\u200B", inline=False)
-    emb.add_field(name="Sunrise at",
-                  value=f"<t:{w.sunriseAt}:t>", inline=True)
-    emb.add_field(name="Sunset at",
-                  value=f"<t:{w.sunsetAt}:t>", inline=True)
-    emb.set_footer(text=f"Like the bot? A review or a vote on my Top.gg profile would be appreciated. Thank You UwU",
-                   icon_url="https://em-content.zobj.net/thumbs/120/toss-face/342/red-heart_2764-fe0f.png")
-    emb.set_image(f'attachment://{data.get("channelID")}.png')
-    file = nextcord.File(
-        f'subimages/{data.get("channelID")}.png', filename=f'{data.get("channelID")}.png')
-    if int(w.temp) < 0:
-        dat = [file, emb, f'minus{w.temp}{w.unitText}-{w.location}']
-    else:
-        dat = [file, emb, f'{w.temp}{w.unitText}-{w.location}']
-    return dat
-
 
 def weatherEmbBuilder(interaction: nextcord.Interaction):
     keyUsed = ""
@@ -837,7 +859,7 @@ def weatherEmbBuilder(interaction: nextcord.Interaction):
             os.getenv('weatherKey'), u.get('lat'), u.get('lon'), u.get('units'))
     w.getData()
     imageGenerator.createImage(
-        (w.temp+w.unitText), w.weatherCondition, w.icon, w.location, str(interaction.user.id))
+        (w.temp), w.weatherCondition, w.icon, w.location, str(interaction.user.id))
     emb = nextcord.embeds.Embed(colour=nextcord.Colour.from_rgb(
         r=47, g=49, b=54), title="Current Weather Data.", description="\u200B")
     emb.add_field(name="Humidity",
@@ -890,11 +912,12 @@ def permissionChecker(member: nextcord.Member) -> list:
 
 
 def logTheCommand(interaction: nextcord.Interaction):
-    print(datetime.now().ctime(),
+    print("[INFO] ",datetime.now().ctime(),
           f" RAN COMMAND {interaction.application_command.name} in {interaction.guild} by {interaction.user}")
 
 
-if __name__ == '__main__':
+
+def directoryManager():
     if (os.path.exists('servers') == False):
         os.mkdir('servers')
     if (os.path.exists('users') == False):
@@ -903,6 +926,129 @@ if __name__ == '__main__':
         os.mkdir('subscriptions')
     if (os.path.exists('subimages') == False):
         os.mkdir('subimages')
-    if (os.path.exists('forecast') == False):
-        os.mkdir('forecast')
+
+
+
+
+def weatherUpdater():
+    lis = os.listdir('subscriptions')
+    for u in lis:
+        for subs in os.listdir(f'subscriptions/{u}'):
+            
+            try:
+                k = accountManager.getSubInfo(channelId=subs[:-5], serverID=u)
+            except Exception as e:
+                print('[ERROR] INVALID FORMAT. ',e)
+                continue;
+
+            with open(f'subscriptions/{u}/{subs}', 'r') as fp:
+                try:
+                    data = json.load(fp)
+                    weatherdata = weatherService.weatherServices(os.getenv('weatherKey'),data.get("lat"),data.get("lon"),data.get("units"))
+                    weatherdata.getData()
+                    wea = {
+                        "temp":weatherdata.temp,
+                        "weatherCondition":weatherdata.weatherCondition,
+                        "icon":weatherdata.icon,
+                        "humidity":weatherdata.humidity,
+                        "windSpeed":weatherdata.windSpeed,
+                        "windDirection":weatherdata.windDirection,
+                        "feelsLike":weatherdata.feelsLike,
+                        "sunriseAt":weatherdata.sunriseAt,
+                        "sunsetAt":weatherdata.sunsetAt,
+                        "location":weatherdata.location
+                    }
+                    forecas = weatherService.forecast(lat_lon= f'{data.get("lat")},{data.get("lon")}',units=data.get('units'))
+                    with open(f'{fp.name}', "w") as oute:
+                        data.update(forecas)
+                        data.update(wea)
+                        json.dump(data,oute)
+                                
+                except Exception as e:
+                    print('[ERROR] Failed to write data to json files of subscriptions.... Details: ',e)
+
+
+def weatherInit():
+    count = 0
+    lis = os.listdir('subscriptions')
+    for u in lis:
+        for subs in os.listdir(f'subscriptions/{u}'):
+            
+            try:
+                k = accountManager.getSubInfo(channelId=subs[:-5], serverID=u)
+            except Exception as e:
+                print('[ERROR] INVALID FORMAT. ',e)
+                continue;
+            
+            
+            if "weatherCondition" in k.keys():
+                pass
+            else:
+                count+=1
+                with open(f'subscriptions/{u}/{subs}', 'r') as fp:
+                    try:
+                        data = json.load(fp)
+                        wea = {
+                            "temp":"gg",
+                            "weatherCondition":"gg",
+                            "icon":"gg",
+                            "humidity":"gg",
+                            "windSpeed":"gg",
+                            "windDirection":"gg",
+                            "feelsLike":"gg",
+                            "sunriseAt":"gg",
+                            "sunsetAt":"gg",
+                            "location":"gg"
+                        }
+                        forecas = weatherService.forecast(lat_lon= f'{data.get("lat")},{data.get("lon")}',units=data.get('units'))
+                        with open(f'{fp.name}', "w") as oute:
+                            data.update(forecas)
+                            data.update(wea)
+                            json.dump(data,oute)
+                                    
+                    except Exception as e:
+                        print('[ERROR] Failed to write data to json files of subscriptions.... Details: ',e)
+    if count > 0:
+        print(f'[INFO] {count} files were initialized...')
+    else:
+        print('[INFO] No files needed to be initialized....')
+
+
+
+
+
+
+
+if __name__ == '__main__':
+    
+    print(r""" 
+             _    _ ______ _      _____ ____   _____   _      ____   _____  _____   __  
+            | |  | |  ____| |    |_   _/ __ \ / ____| | |    / __ \ / ____|/ ____|  \ \ 
+            | |__| | |__  | |      | || |  | | (___   | |   | |  | | |  __| (___   (_) |
+            |  __  |  __| | |      | || |  | |\___ \  | |   | |  | | | |_ |\___ \    | |
+            | |  | | |____| |____ _| || |__| |____) | | |___| |__| | |__| |____) |  _| |
+            |_|  |_|______|______|_____\____/|_____/  |______\____/ \_____|_____/  (_) |
+                                                                                    /_/ 
+                                                                            
+                                                                                                                    
+                                                                                                                    
+                                                                                                                    
+    
+    """)
+
+    
+    print("[INFO] Starting the BOT please wait...")
+    print("[INFO] Creating important directories...")
+    directoryManager()
+    print("[SUCCESS] Directory Mananger job done!")
+    print("[INFO] Checking for empty weather.jsons and re-initializing them...")
+    weatherInit()
+    print("[SUCCESS] Weather initialization done...")
+    print("[INFO] Updating weather data in local files...")
+    weatherUpdater()
+    print("[SUCCESS] Weather data of subs updated...")
+    print("[INFO] Connecting to Discord API...")
     bot.run(os.getenv("botToken"))
+
+
+

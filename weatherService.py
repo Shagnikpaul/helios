@@ -42,7 +42,7 @@ def forecast(lat_lon, units) -> dict:
             int(data.json()['forecast']['forecastday'][0]['day'][f'mintemp_{units}']))+u
         return {"minT": minT, "maxT": maxT}
     except:
-        return {'null', 'null2'}
+        return {"minT": 'nope', "maxT": 'nope'}
 
 
 def geoCode(location: str):
@@ -92,7 +92,7 @@ class weatherServices:
             self.unitText = '°F'
         data = requests.get(
             f"https://api.openweathermap.org/data/2.5/weather?lat={self.lat}&lon={self.lon}&appid={self.api_key}&units={self.units}")
-        self.temp = str(round(float(data.json()["main"]["temp"])))
+        self.temp = str(round(float(data.json()["main"]["temp"]))) + self.unitText
         self.weatherCondition = data.json()["weather"][0]["main"]
         self.minTemp = data.json()["main"]["temp_min"]
         self.maxTemp = data.json()["main"]["temp_max"]
@@ -100,7 +100,7 @@ class weatherServices:
         self.windSpeed = data.json()["wind"]["speed"]
         self.windDirection = calculate_bearing(int(data.json()["wind"]["deg"]))
         self.icon = data.json()["weather"][0]["icon"]
-        self.feelsLike = str(round(float(data.json()["main"]["feels_like"])))
+        self.feelsLike = str(round(float(data.json()["main"]["feels_like"]))) +self.unitText
         self.location = data.json()["name"]
         self.sunriseAt = data.json()["sys"]["sunrise"]
         self.sunsetAt = data.json()["sys"]["sunset"]
