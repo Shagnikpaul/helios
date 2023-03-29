@@ -150,7 +150,8 @@ async def embedUpdate():
     for u in lis:
         for subs in os.listdir(f'subscriptions/{u}'):
             c+=1
-            t = asyncio.create_task(update(u,subs))       
+            # t = asyncio.create_task(update(u,subs))   
+            await update(u, subs)    
     print(f'[TASK : SUCEEDED] Embeds Updated for a total of {c} subscriptions')
     
     
@@ -214,7 +215,7 @@ async def update(u,subs):
                     value=f"<t:{acco.get('sunriseAt')}:t>", inline=True)
         emb.add_field(name="Sunset at",
                     value=f"<t:{acco.get('sunsetAt')}:t>", inline=True)
-        emb.set_footer(text=f"Like the bot? A review or a vote on my Top.gg profile would be appreciated. Thank You UwU",
+        emb.set_footer(text=f"Like the bot? A review or a vote on my Top.gg profile would be appreciated. Thank You!",
                     icon_url="https://em-content.zobj.net/thumbs/120/toss-face/342/red-heart_2764-fe0f.png")
         emb.set_image(f'attachment://{acco.get("channelID")}.png')
         file = nextcord.File(
@@ -865,7 +866,7 @@ def weatherEmbBuilder(interaction: nextcord.Interaction):
     emb.add_field(name="Humidity",
                   value=f"``` {w.humidity} %  ```", inline=True)
     emb.add_field(name="Feels Like",
-                  value=f"``` {w.feelsLike} {w.unitText}  ```", inline=True)
+                  value=f"``` {w.feelsLike}```", inline=True)
     emb.add_field(name="\u200B", value="\u200B", inline=False)
     emb.add_field(name="Wind Speed",
                   value=f"``` {w.windSpeed} m/s  ```", inline=True)
@@ -876,7 +877,7 @@ def weatherEmbBuilder(interaction: nextcord.Interaction):
                   value=f"<t:{w.sunriseAt}:t>", inline=True)
     emb.add_field(name="Sunset at",
                   value=f"<t:{w.sunsetAt}:t>", inline=True)
-    emb.set_footer(text="Like the bot? A review or a vote on my Top.gg profile would be appreciated. Thank You UwU",
+    emb.set_footer(text="Like the bot? A review or a vote on my Top.gg profile would be appreciated. Thank You!",
                    icon_url="https://em-content.zobj.net/thumbs/120/toss-face/342/red-heart_2764-fe0f.png")
     emb.set_image('attachment://imf.png')
     return emb
