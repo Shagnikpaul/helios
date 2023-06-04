@@ -1,7 +1,10 @@
 from PIL import Image, ImageDraw, ImageFont
 import accountCreationSystem
-
-acc = accountCreationSystem.acuSystem()
+from dotenv import load_dotenv
+from MClient import MClient
+import os
+load_dotenv()
+acc = accountCreationSystem.acuSystem(MClient(CONNECTION_URI=os.getenv('mongo')))
 
 
 def createImage(temperature: str, weatherConditon: str, iconCode: str, location: str, userID: str):

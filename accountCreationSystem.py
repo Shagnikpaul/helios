@@ -3,9 +3,14 @@ import json
 import shutil
 from weatherService import forecast
 import weatherService
+from MClient import MClient
+from dbFunctions.delete import *
+
+
 
 class acuSystem:
-    def __init__(self) -> None:
+    def __init__(self, mongoInstance:MClient) -> None:
+        self.mongo = mongoInstance
         print(os.getcwd())
 
     def serverAccountExists(self, serverID: str) -> bool:
@@ -42,9 +47,10 @@ class acuSystem:
         os.chdir('users')
         os.mkdir(userID)
         os.chdir('../')
-        userData = {"lat": lat, "lon": lon, "units": units}
+        userData = {"lat": lat, "lon": lon, "units": units, "userID":userID}
         with open(f"users/{userID}/USER_DATA.json", "w") as outfile:
             json.dump(userData, outfile)
+            self.mongo.addUser(userData)
 
     def createServerAccount(self, serverID: str, API_KEY: str):
         """Create a new folder in the `servers` folder, containing the `.json` file having the `API_KEY`.
@@ -90,6 +96,8 @@ class acuSystem:
             userID (str): Give the user's discord `ID`
         """
         shutil.rmtree(f'users/{userID}')
+        self.mongo.delUserD(userID)
+
 
     def delServer(self, serverID: str):
         """Deletes server data with a particular serverID from the `servers` folder.

@@ -4,7 +4,6 @@ from nextcord import SlashOption, abc
 import nextcord
 import json
 import shutil
-import threading
 import os
 import weatherService
 from weatherService import weatherServices as accountManager
@@ -17,18 +16,18 @@ from cooldowns import CallableOnCooldown
 import cooldowns
 import time
 from random import randint
-import asyncio
-
+from MClient import MClient
 
 load_dotenv()
 firstTime = True
+mongo = MClient(CONNECTION_URI=os.getenv('mongo'))
 intents = nextcord.Intents.default()
 intents.message_content = True
 intents.messages = True
 intents.guilds = True
 bot = commands.Bot(command_prefix='!w', intents=intents, help_command=None)
 
-accountManager = accountManager()
+accountManager = accountManager(mongo)
 server_count: int = 0
 quote_list = ["Vote me on Top.gg", "/help-helios | !whelp",
               "check out my weather feed feature! (type /help-helios for more info)", 'leave a comment on my Top.gg profile']
@@ -157,7 +156,6 @@ async def embedUpdate():
     
 
 async def update(u,subs):
-    print('[INFO] updating')
     acco = accountManager.getSubInfo(channelId=subs[:-5], serverID=u)
     c: nextcord.TextChannel = bot.get_channel(int(acco.get('channelID')))
     # channel editing part
@@ -647,7 +645,7 @@ async def serversetupCommand(interaction: nextcord.Interaction,
 @bot.slash_command(name="user-setup", description="Configure the bot to get the weather of your own loction.", guild_ids=bot.default_guild_ids)
 async def usersetupCommand(interaction: nextcord.Interaction,
                            location: Optional[str] = SlashOption(
-                               required=True, description="Enter your town or city name. Don't give exact address 💀"),
+                               required=True, description="Enter your town or city name. Don't give your exact address 💀"),
                            units: Optional[str] = SlashOption(name='units', required=True, choices={"Celcius": "Metric", "Fahrenheit": "Imperial"})):
     logTheCommand(interaction=interaction)
     if (accountManager.userAccountExists(userID=str(interaction.user.id))):
@@ -1042,6 +1040,12 @@ if __name__ == '__main__':
     print("[INFO] Creating important directories...")
     directoryManager()
     print("[SUCCESS] Directory Mananger job done!")
+    print("[INFO] USERDATA MONGODB SYNC starts...")
+    try:
+        mongo.userDataSync()
+        print("[SUCCESS] MongoDB sync finished...")
+    except: 
+        print("Error in Mongo Data Sync")
     print("[INFO] Checking for empty weather.jsons and re-initializing them...")
     weatherInit()
     print("[SUCCESS] Weather initialization done...")
