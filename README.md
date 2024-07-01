@@ -2,7 +2,7 @@
 ![Logo](https://github.com/Shagnikpaul/helios/blob/main/images/banner.png)
 
 
-<h1 align="center">🌞 Hi I am Helios.</h1>
+<h1 align="center">Helios will not be hosted any more you can continue using it by self hosting.</h1>
 <p align="center">I am an easy-to-use discord weather bot. I fetch data from <a href="https://openweathermap.org/api">OpenWeatherMap</a> API and then generate a Weather card based on that data and display it to the user through a discord embed. I can also send updated weather feed automatically to a particular text channel in your server every 30 minutes.</p>
 
 <p align="center">
